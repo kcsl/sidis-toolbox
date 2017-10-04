@@ -1,0 +1,85 @@
+public class com.kcsl.sidis.support.SIDIS extends java.lang.Object
+{
+    public static java.io.PrintStream out;
+
+    static void <clinit>()
+    {
+        java.io.PrintStream $r0;
+
+        $r0 = staticinvoke <com.kcsl.sidis.support.SIDIS: java.io.PrintStream getPrintStream()>();
+
+        <com.kcsl.sidis.support.SIDIS: java.io.PrintStream out> = $r0;
+
+        return;
+    }
+
+    public void <init>()
+    {
+        com.kcsl.sidis.support.SIDIS r0;
+
+        r0 := @this: com.kcsl.sidis.support.SIDIS;
+
+        specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        return;
+    }
+
+    public static java.io.PrintStream getPrintStream()
+    {
+        java.io.PrintStream $r0;
+
+        $r0 = staticinvoke <com.kcsl.sidis.support.SIDIS: java.io.PrintStream getPrintStream(java.lang.String)>("sidis.dat");
+
+        return $r0;
+    }
+
+    public static java.io.PrintStream getPrintStream(java.lang.String)
+    {
+        java.lang.String r0;
+        java.io.File $r1;
+        java.io.PrintStream $r2;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = new java.io.File;
+
+        specialinvoke $r1.<java.io.File: void <init>(java.lang.String)>(r0);
+
+        $r2 = staticinvoke <com.kcsl.sidis.support.SIDIS: java.io.PrintStream getPrintStream(java.io.File)>($r1);
+
+        return $r2;
+    }
+
+    public static java.io.PrintStream getPrintStream(java.io.File)
+    {
+        java.io.File r0;
+        java.io.PrintStream $r2, r4;
+        java.io.IOException $r3;
+
+        r0 := @parameter0: java.io.File;
+
+        r4 = null;
+
+     label1:
+        $r2 = new java.io.PrintStream;
+
+        specialinvoke $r2.<java.io.PrintStream: void <init>(java.io.File)>(r0);
+
+        r4 = $r2;
+
+     label2:
+        goto label4;
+
+     label3:
+        $r3 := @caughtexception;
+
+        virtualinvoke $r3.<java.io.IOException: void printStackTrace()>();
+
+        staticinvoke <java.lang.System: void exit(int)>(-1);
+
+     label4:
+        return r4;
+
+        catch java.io.IOException from label1 to label2 with label3;
+    }
+}
