@@ -35,6 +35,8 @@ public class Import {
 			Long count = statementCounts.remove(address);
 			if(count == null){
 				count = 1L;
+			} else {
+				count++;
 			}
 			statementCounts.put(address, count);
 		}

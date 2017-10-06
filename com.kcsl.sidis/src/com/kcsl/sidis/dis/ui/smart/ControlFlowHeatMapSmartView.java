@@ -30,7 +30,7 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 
 	@Override
 	public String getTitle() {
-		return "Control Flow (Dynamic Heap Map)";
+		return "Control Flow (Dynamic Heat Map)";
 	}
 	
 	@Override
@@ -101,31 +101,43 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 			for(Node statement : statements){
 				Long statementExecutionCount = getStatementExecutionCount(statement);
 				lowestValue = Math.min(lowestValue, statementExecutionCount);
-				highestValue = Math.max(lowestValue, statementExecutionCount);
+				highestValue = Math.max(highestValue, statementExecutionCount);
 			}
 			
-			// compute a color gradient mapping for each statement
-			Color lowestValueColor = Color.RED.brighter().brighter().brighter();
-			Color highestValueColor = Color.RED.darker().darker().darker();
 			HashMap<Node,Color> colorMap = new HashMap<Node,Color>();
 			for(Node statement : statements){
 				Long statementExecutionCount = getStatementExecutionCount(statement);
-				if(statementExecutionCount == lowestValue){
-					colorMap.put(statement, lowestValueColor);
-				} else if(statementExecutionCount == highestValue){
-					colorMap.put(statement, highestValueColor);
-				} else {
-					long actualRange = highestValue - lowestValue;
-					long colorRange = highestValueColor.getRed() - lowestValueColor.getRed();
-					double interval = (double) actualRange / (double) colorRange;
-					int colorValue = (int) Math.round((double) statementExecutionCount * interval);
-					Color color = new Color(colorValue, 0, 0);
-					colorMap.put(statement, color);
-				}
+				float percentage = (float) (((double) statementExecutionCount * 100.0) / (double) highestValue);
+				colorMap.put(statement, getHeatMapColorValue(percentage));
 			}
+			
+//			// compute a color gradient mapping for each statement
+//			Color lowestValueColor = Color.RED.brighter().brighter().brighter();
+//			Color highestValueColor = Color.RED.darker().darker().darker();
+//			HashMap<Node,Color> colorMap = new HashMap<Node,Color>();
+//			for(Node statement : statements){
+//				Long statementExecutionCount = getStatementExecutionCount(statement);
+//				if(statementExecutionCount == lowestValue){
+//					colorMap.put(statement, lowestValueColor);
+//				} else if(statementExecutionCount == highestValue){
+//					colorMap.put(statement, highestValueColor);
+//				} else {
+//					long actualRange = highestValue - lowestValue;
+//					long colorRange = highestValueColor.getRed() - lowestValueColor.getRed();
+//					double interval = (double) actualRange / (double) colorRange;
+//					int colorValue = (int) Math.round((double) statementExecutionCount * interval);
+//					Color color = new Color(colorValue, 0, 0);
+//					colorMap.put(statement, color);
+//				}
+//			}
 		}
 		
 		return heatMap;
+	}
+	
+	private static Color getHeatMapColorValue(float intensity) {
+		float hue = (1f - intensity) * 240f;
+		return Color.getHSBColor(hue, 1f, .5f);
 	}
 	
 	private static Long getStatementExecutionCount(Node statement){
