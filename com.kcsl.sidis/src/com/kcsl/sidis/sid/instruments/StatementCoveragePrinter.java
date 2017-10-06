@@ -1,4 +1,4 @@
-package com.kcsl.sidis.instruments;
+package com.kcsl.sidis.sid.instruments;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -31,40 +31,22 @@ public class StatementCoveragePrinter extends MethodCFGTransform {
 	
 	@Override
 	protected void transform(Body methodBody, Map<Unit,Node> atlasCorrespondence) {
-		SootClass printStreamClass = Scene.v().getSootClass("java.io.PrintStream");
-		Local sidisPrinter = null;
 		Chain<Unit> statements = methodBody.getUnits();
 		Iterator<Unit> methodBodyUnitsIterator = statements.snapshotIterator();
 		while(methodBodyUnitsIterator.hasNext()){
 			Unit statement = methodBodyUnitsIterator.next();
 			Node atlasNode = atlasCorrespondence.get(statement);
 			if(atlasNode != null && selectedStatements.contains(atlasNode) && !restrictedRegion.contains(atlasNode)){
-				if(sidisPrinter == null){
-					sidisPrinter = addLocalPrinterReference(methodBody);
-				}
-				insertPrintBeforeStatement(statements, statement, sidisPrinter, atlasNode.address().toAddressString());
+				insertPrintBeforeStatement(statements, statement, atlasNode.address().toAddressString());
 			}
 		}
 	}
 	
-	private Local addLocalPrinterReference(Body methodBody){
-		Local sidisPrinter = Jimple.v().newLocal("sidisPrinter", RefType.v("java.io.PrintStream"));
-		methodBody.getLocals().add(sidisPrinter);
-		return sidisPrinter;
-	}
-	
-	private void insertPrintBeforeStatement(Chain<Unit> statements, Unit statement, Local sidisPrinter, String value) {
-		// insert "sidisPrinter = com.kcsl.sidis.support.SIDIS.out;"
-		statements.insertBefore(
-				Jimple.v().newAssignStmt(sidisPrinter,
-						Jimple.v().newStaticFieldRef(Scene.v()
-								.getField("<com.kcsl.sidis.support.SIDIS: java.io.PrintStream out>").makeRef())),
-				statement);
-		
-		// insert "sidisPrinter.println(<value>);"
-		SootMethod printlnCallsite = Scene.v().getSootClass("java.io.PrintStream").getMethod("void println(long)");
+	private void insertPrintBeforeStatement(Chain<Unit> statements, Unit statement, String value) {
+		// insert "SIDIS.println(<value>);"
+		SootMethod printlnCallsite = Scene.v().getSootClass("com.kcsl.sidis.support.SIDIS").getMethod("void println(java.lang.String)");
 		statements.insertBefore(Jimple.v().newInvokeStmt(
-				Jimple.v().newVirtualInvokeExpr(sidisPrinter, printlnCallsite.makeRef(), StringConstant.v(value))),
+				Jimple.v().newStaticInvokeExpr(printlnCallsite.makeRef(), StringConstant.v(value))),
 				statement);
 	}
 

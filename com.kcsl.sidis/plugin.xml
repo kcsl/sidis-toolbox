@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+	<!-- add sidis smart views -->
+    <extension
+         point="com.ensoftcorp.atlas.ui.smartViewScript">
+      <script
+            class="com.kcsl.sidis.dis.ui.smart.ControlFlowHeatMapSmartView">
+      </script>
+   </extension>
+  
+</plugin>

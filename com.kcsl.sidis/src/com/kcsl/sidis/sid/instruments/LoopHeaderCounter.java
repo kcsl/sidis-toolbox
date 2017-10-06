@@ -1,4 +1,4 @@
-package com.kcsl.sidis.instruments;
+package com.kcsl.sidis.sid.instruments;
 
 import java.util.Map;
 

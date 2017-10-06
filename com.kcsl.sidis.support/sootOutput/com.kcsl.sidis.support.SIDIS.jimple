@@ -24,6 +24,24 @@ public class com.kcsl.sidis.support.SIDIS extends java.lang.Object
         return;
     }
 
+    public static void println(java.lang.String)
+    {
+        java.lang.String r0;
+        java.io.PrintStream $r1, $r2;
+
+        r0 := @parameter0: java.lang.String;
+
+        $r1 = <com.kcsl.sidis.support.SIDIS: java.io.PrintStream out>;
+
+        virtualinvoke $r1.<java.io.PrintStream: void println(java.lang.String)>(r0);
+
+        $r2 = <com.kcsl.sidis.support.SIDIS: java.io.PrintStream out>;
+
+        virtualinvoke $r2.<java.io.PrintStream: void flush()>();
+
+        return;
+    }
+
     public static java.io.PrintStream getPrintStream()
     {
         java.io.PrintStream $r0;

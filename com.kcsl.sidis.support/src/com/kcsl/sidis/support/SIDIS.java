@@ -8,6 +8,11 @@ public class SIDIS {
 
 	public static PrintStream out = getPrintStream();
 	
+	public static void println(String value){
+		out.println(value);
+		out.flush();
+	}
+	
 	public static PrintStream getPrintStream(){
 		return getPrintStream("sidis.dat");
 	}
