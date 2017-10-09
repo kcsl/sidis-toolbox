@@ -20,12 +20,12 @@ import soot.jimple.Jimple;
 import soot.jimple.StringConstant;
 import soot.util.Chain;
 
-public class StatementCoveragePrinter extends MethodCFGTransform {
+public class StatementCounter extends MethodCFGTransform {
 
 	private AtlasSet<Node> selectedStatements;
 	
-	public StatementCoveragePrinter(Node method, AtlasSet<Node> selectedStatements) {
-		super("statement_coverage_printer", method);
+	public StatementCounter(Node method, AtlasSet<Node> selectedStatements) {
+		super("statement_execution_counter", method);
 		this.selectedStatements = Common.toQ(cfgNodes).intersection(Common.toQ(selectedStatements)).eval().nodes();
 	}
 	
@@ -44,7 +44,7 @@ public class StatementCoveragePrinter extends MethodCFGTransform {
 	
 	private void insertPrintBeforeStatement(Chain<Unit> statements, Unit statement, String value) {
 		// insert "SIDIS.println(<value>);"
-		SootMethod printlnCallsite = Scene.v().getSootClass("com.kcsl.sidis.support.SIDIS").getMethod("void println(java.lang.String)");
+		SootMethod printlnCallsite = Scene.v().getSootClass("com.kcsl.sidis.support.SIDIS").getMethod("void count(java.lang.String)");
 		statements.insertBefore(Jimple.v().newInvokeStmt(
 				Jimple.v().newStaticInvokeExpr(printlnCallsite.makeRef(), StringConstant.v(value))),
 				statement);

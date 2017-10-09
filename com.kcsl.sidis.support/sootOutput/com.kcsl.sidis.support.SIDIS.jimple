@@ -1,14 +1,25 @@
 public class com.kcsl.sidis.support.SIDIS extends java.lang.Object
 {
+    private static java.util.HashMap counts;
+    private static boolean initialized;
     public static java.io.PrintStream out;
 
     static void <clinit>()
     {
-        java.io.PrintStream $r0;
+        java.util.HashMap $r0;
+        java.io.PrintStream $r1;
 
-        $r0 = staticinvoke <com.kcsl.sidis.support.SIDIS: java.io.PrintStream getPrintStream()>();
+        $r0 = new java.util.HashMap;
 
-        <com.kcsl.sidis.support.SIDIS: java.io.PrintStream out> = $r0;
+        specialinvoke $r0.<java.util.HashMap: void <init>()>();
+
+        <com.kcsl.sidis.support.SIDIS: java.util.HashMap counts> = $r0;
+
+        <com.kcsl.sidis.support.SIDIS: boolean initialized> = 0;
+
+        $r1 = staticinvoke <com.kcsl.sidis.support.SIDIS: java.io.PrintStream getPrintStream()>();
+
+        <com.kcsl.sidis.support.SIDIS: java.io.PrintStream out> = $r1;
 
         return;
     }
@@ -20,6 +31,66 @@ public class com.kcsl.sidis.support.SIDIS extends java.lang.Object
         r0 := @this: com.kcsl.sidis.support.SIDIS;
 
         specialinvoke r0.<java.lang.Object: void <init>()>();
+
+        return;
+    }
+
+    public static void count(java.lang.String)
+    {
+        java.lang.String r0;
+        boolean $z0;
+        java.util.HashMap $r1, $r3;
+        java.lang.Object $r2;
+        long $l0, $l1;
+        java.lang.Runtime $r5;
+        java.lang.Thread $r6;
+        com.kcsl.sidis.support.SIDIS$1 $r7;
+        java.lang.Long r8, r9;
+
+        r0 := @parameter0: java.lang.String;
+
+        $z0 = <com.kcsl.sidis.support.SIDIS: boolean initialized>;
+
+        if $z0 != 0 goto label1;
+
+        <com.kcsl.sidis.support.SIDIS: boolean initialized> = 1;
+
+        $r5 = staticinvoke <java.lang.Runtime: java.lang.Runtime getRuntime()>();
+
+        $r6 = new java.lang.Thread;
+
+        $r7 = new com.kcsl.sidis.support.SIDIS$1;
+
+        specialinvoke $r7.<com.kcsl.sidis.support.SIDIS$1: void <init>()>();
+
+        specialinvoke $r6.<java.lang.Thread: void <init>(java.lang.Runnable)>($r7);
+
+        virtualinvoke $r5.<java.lang.Runtime: void addShutdownHook(java.lang.Thread)>($r6);
+
+     label1:
+        $r1 = <com.kcsl.sidis.support.SIDIS: java.util.HashMap counts>;
+
+        $r2 = virtualinvoke $r1.<java.util.HashMap: java.lang.Object remove(java.lang.Object)>(r0);
+
+        r8 = (java.lang.Long) $r2;
+
+        if r8 != null goto label2;
+
+        r9 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>(1L);
+
+        goto label3;
+
+     label2:
+        $l0 = virtualinvoke r8.<java.lang.Long: long longValue()>();
+
+        $l1 = $l0 + 1L;
+
+        r9 = staticinvoke <java.lang.Long: java.lang.Long valueOf(long)>($l1);
+
+     label3:
+        $r3 = <com.kcsl.sidis.support.SIDIS: java.util.HashMap counts>;
+
+        virtualinvoke $r3.<java.util.HashMap: java.lang.Object put(java.lang.Object,java.lang.Object)>(r0, r9);
 
         return;
     }
@@ -99,5 +170,14 @@ public class com.kcsl.sidis.support.SIDIS extends java.lang.Object
         return r4;
 
         catch java.io.IOException from label1 to label2 with label3;
+    }
+
+    static java.util.HashMap access$0()
+    {
+        java.util.HashMap $r0;
+
+        $r0 = <com.kcsl.sidis.support.SIDIS: java.util.HashMap counts>;
+
+        return $r0;
     }
 }
