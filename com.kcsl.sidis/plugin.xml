@@ -2,6 +2,25 @@
 <?eclipse version="3.4"?>
 <plugin>
 
+   <!-- create an initializer extension to initialize preferences -->
+   <extension
+      point="org.eclipse.equinox.preferences.preferences">
+	   <initializer
+	         class="com.kcsl.sidis.preferences.SIDISPreferences">
+	   </initializer>
+	</extension>
+	
+	<!-- create a preferences menu item for sidis analysis -->
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="com.kcsl.sidis.ui.SIDISPreferencesPage"
+            id="com.kcsl.sidis.ui.preferences"
+            name="SIDIS Analysis"
+            category="com.ensoftcorp.open.commons.ui.toolbox.preferences">
+      </page>
+   </extension>
+
 	<!-- add sidis smart views -->
     <extension
          point="com.ensoftcorp.atlas.ui.smartViewScript">

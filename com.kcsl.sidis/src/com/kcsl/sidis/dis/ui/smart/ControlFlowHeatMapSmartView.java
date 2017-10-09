@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import com.ensoftcorp.abp.util.Log;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
@@ -23,6 +24,7 @@ import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.kcsl.sidis.dis.HeatMap;
 import com.kcsl.sidis.dis.Import;
+import com.kcsl.sidis.preferences.SIDISPreferences;
 
 /**
  * A Control Flow Smart view that overlays a heat map of statement coverage from dynamic analysis
@@ -32,7 +34,7 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 
 	@Override
 	public String getTitle() {
-		return "Control Flow (Dynamic Heat Map)";
+		return "Control Flow (DIS Heat Map)";
 	}
 	
 	@Override
@@ -112,7 +114,15 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 			for(Node statement : statements){
 				Long statementExecutionCount = getStatementExecutionCount(statement);
 				double intensity = HeatMap.normalizeIntensity(statementExecutionCount, lowestValue, highestValue);
-				heatMap.highlightNodes(Common.toQ(statement), HeatMap.getBlueRedGradientHeatMapColor(intensity));
+				if(SIDISPreferences.isBlueRedColorGradiantEnabled()){
+					heatMap.highlightNodes(Common.toQ(statement), HeatMap.getBlueRedGradientHeatMapColor(intensity));
+				} else if(SIDISPreferences.isMonochromeColorGradiantEnabled()){
+					heatMap.highlightNodes(Common.toQ(statement), HeatMap.getMonochromeHeatMapColor(intensity));
+				} else if(SIDISPreferences.isInvertedMonochromeColorGradiantEnabled()){
+					heatMap.highlightNodes(Common.toQ(statement), HeatMap.getInvertedMonochromeHeatMapColor(intensity));
+				} else {
+					Log.warning("No preferred heat map color scheme is configured.");
+				}
 			}
 		}
 		

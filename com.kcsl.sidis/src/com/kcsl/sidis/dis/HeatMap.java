@@ -26,7 +26,7 @@ public class HeatMap {
 	 * @param intensity
 	 * @return
 	 */
-	public static Color getInversedMonochromeHeatMapColor(double intensity) {
+	public static Color getInvertedMonochromeHeatMapColor(double intensity) {
 		if(intensity < 0.0 || intensity > 1.0){
 			throw new IllegalArgumentException("Invalid intensity value");
 		}

@@ -48,14 +48,14 @@ public class DebugHeatMap extends ViewPart {
 		monochromeColor.setSize(584, 64);
 		monochromeColor.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		
-		Label inversedMonochromeLabel = new Label(composite, SWT.NONE);
-		inversedMonochromeLabel.setText("Inversed Monochrome: ");
+		Label invertedMonochromeLabel = new Label(composite, SWT.NONE);
+		invertedMonochromeLabel.setText("Inverted Monochrome: ");
 		
-		Composite inversedMonochromeColor = new Composite(composite, SWT.NONE);
-		GridData gd_inversedMonochromeColor = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
-		gd_inversedMonochromeColor.heightHint = 20;
-		inversedMonochromeColor.setLayoutData(gd_inversedMonochromeColor);
-		inversedMonochromeColor.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
+		Composite invertedMonochromeColor = new Composite(composite, SWT.NONE);
+		GridData gd_invertedMonochromeColor = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
+		gd_invertedMonochromeColor.heightHint = 20;
+		invertedMonochromeColor.setLayoutData(gd_invertedMonochromeColor);
+		invertedMonochromeColor.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		
 		Label twoColorLabel = new Label(composite, SWT.NONE);
 		twoColorLabel.setText("2 Color (Blue → Red)");
@@ -102,8 +102,8 @@ public class DebugHeatMap extends ViewPart {
 				java.awt.Color monochromeColorResult = HeatMap.getMonochromeHeatMapColor(intensity);
 				monochromeColor.setBackground(new Color(parent.getDisplay(), monochromeColorResult.getRed(), monochromeColorResult.getGreen(), monochromeColorResult.getBlue()));
 				
-				java.awt.Color inversedMonochromeColorResult = HeatMap.getInversedMonochromeHeatMapColor(intensity);
-				inversedMonochromeColor.setBackground(new Color(parent.getDisplay(), inversedMonochromeColorResult.getRed(), inversedMonochromeColorResult.getGreen(), inversedMonochromeColorResult.getBlue()));
+				java.awt.Color invertedMonochromeColorResult = HeatMap.getInvertedMonochromeHeatMapColor(intensity);
+				invertedMonochromeColor.setBackground(new Color(parent.getDisplay(), invertedMonochromeColorResult.getRed(), invertedMonochromeColorResult.getGreen(), invertedMonochromeColorResult.getBlue()));
 				
 				java.awt.Color twoColorResult = HeatMap.getBlueRedGradientHeatMapColor(intensity);
 				twoColor.setBackground(new Color(parent.getDisplay(), twoColorResult.getRed(), twoColorResult.getGreen(), twoColorResult.getBlue()));

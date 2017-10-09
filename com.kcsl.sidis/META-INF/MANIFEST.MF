@@ -13,11 +13,10 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.launching,
  com.ensoftcorp.abp;bundle-version="3.2.0",
  com.ensoftcorp.abp.common;bundle-version="3.2.0",
- com.ensoftcorp.open.commons;bundle-version="3.2.0",
  ca.mcgill.sable.soot;bundle-version="2.5.2",
  ca.mcgill.sable.soot.lib;bundle-version="2.5.2",
- net.ontopia.utils;bundle-version="1.0.0",
- org.jgrapht;bundle-version="0.9.1",
+ com.ensoftcorp.open.commons;bundle-version="3.2.0",
  com.ensoftcorp.open.java.commons;bundle-version="3.2.0",
  com.ensoftcorp.open.jimple.commons;bundle-version="3.2.0"
 Export-Package: com.kcsl.sidis.dis
+Bundle-Activator: com.kcsl.sidis.Activator
