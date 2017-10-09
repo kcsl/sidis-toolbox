@@ -5,8 +5,8 @@ import java.util.Map;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.script.Common;
-import com.ensoftcorp.open.jimple.commons.log.Log;
 import com.ensoftcorp.open.jimple.commons.transform.transforms.MethodCFGTransform;
+import com.kcsl.sidis.log.Log;
 
 import soot.Body;
 import soot.Unit;

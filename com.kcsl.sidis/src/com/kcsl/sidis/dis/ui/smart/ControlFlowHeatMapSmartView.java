@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import com.ensoftcorp.abp.util.Log;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
@@ -24,6 +23,7 @@ import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.kcsl.sidis.dis.HeatMap;
 import com.kcsl.sidis.dis.Import;
+import com.kcsl.sidis.log.Log;
 import com.kcsl.sidis.preferences.SIDISPreferences;
 
 /**
