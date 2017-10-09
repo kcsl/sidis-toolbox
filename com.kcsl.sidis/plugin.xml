@@ -9,5 +9,16 @@
             class="com.kcsl.sidis.dis.ui.smart.ControlFlowHeatMapSmartView">
       </script>
    </extension>
+    
+    <!-- extension for Heat Map Debugger view -->
+	<extension
+         point="org.eclipse.ui.views">
+      <view
+            category="com.ensoftcorp.open.commons.views.categories.toolbox"
+            class="com.kcsl.sidis.ui.DebugHeatMap"
+            id="com.kcsl.sidis.ui.debugheatmap"
+            name="Debug Heat Map">
+      </view>
+   </extension>
   
 </plugin>

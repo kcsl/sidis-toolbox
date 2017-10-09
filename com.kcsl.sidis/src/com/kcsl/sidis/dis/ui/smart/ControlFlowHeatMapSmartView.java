@@ -2,6 +2,7 @@ package com.kcsl.sidis.dis.ui.smart;
 
 import java.awt.Color;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
@@ -20,6 +21,7 @@ import com.ensoftcorp.atlas.ui.scripts.util.SimpleScriptUtil;
 import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
+import com.kcsl.sidis.dis.HeatMap;
 import com.kcsl.sidis.dis.Import;
 
 /**
@@ -76,7 +78,8 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 			Q containingFunctions = CommonQueries.getContainingFunctions(origin);
 			Q cfgs = CommonQueries.cfg(containingFunctions);
 	
-			return computeFrontierResult(origin, cfgs, forward, reverse);
+			Highlighter heatMap = computeHeatMap(cfgs.nodes(XCSG.ControlFlow_Node).eval().nodes());
+			return computeFrontierResult(origin, cfgs, forward, reverse, heatMap);
 		} else {
 			// a function was selected possibly along with cfg nodes
 			Q containingFunctions = CommonQueries.getContainingFunctions(origin);
@@ -85,7 +88,9 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 			
 			// just pretend the entire cfg was selected for selected functions
 			origin = origin.union(selectedFunctionCFGs);
-			return computeFrontierResult(origin, cfgs, forward, reverse);
+			
+			Highlighter heatMap = computeHeatMap(cfgs.nodes(XCSG.ControlFlow_Node).eval().nodes());
+			return computeFrontierResult(origin, cfgs, forward, reverse, heatMap);
 		}
 	}
 	
@@ -104,47 +109,21 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 				highestValue = Math.max(highestValue, statementExecutionCount);
 			}
 			
-			HashMap<Node,Color> colorMap = new HashMap<Node,Color>();
 			for(Node statement : statements){
 				Long statementExecutionCount = getStatementExecutionCount(statement);
-				float percentage = (float) (((double) statementExecutionCount * 100.0) / (double) highestValue);
-				colorMap.put(statement, getHeatMapColorValue(percentage));
+				double intensity = HeatMap.normalizeIntensity(statementExecutionCount, lowestValue, highestValue);
+				heatMap.highlightNodes(Common.toQ(statement), HeatMap.getBlueRedGradientHeatMapColor(intensity));
 			}
-			
-//			// compute a color gradient mapping for each statement
-//			Color lowestValueColor = Color.RED.brighter().brighter().brighter();
-//			Color highestValueColor = Color.RED.darker().darker().darker();
-//			HashMap<Node,Color> colorMap = new HashMap<Node,Color>();
-//			for(Node statement : statements){
-//				Long statementExecutionCount = getStatementExecutionCount(statement);
-//				if(statementExecutionCount == lowestValue){
-//					colorMap.put(statement, lowestValueColor);
-//				} else if(statementExecutionCount == highestValue){
-//					colorMap.put(statement, highestValueColor);
-//				} else {
-//					long actualRange = highestValue - lowestValue;
-//					long colorRange = highestValueColor.getRed() - lowestValueColor.getRed();
-//					double interval = (double) actualRange / (double) colorRange;
-//					int colorValue = (int) Math.round((double) statementExecutionCount * interval);
-//					Color color = new Color(colorValue, 0, 0);
-//					colorMap.put(statement, color);
-//				}
-//			}
 		}
 		
 		return heatMap;
 	}
-	
-	private static Color getHeatMapColorValue(float intensity) {
-		float hue = (1f - intensity) * 240f;
-		return Color.getHSBColor(hue, 1f, .5f);
-	}
-	
+
 	private static Long getStatementExecutionCount(Node statement){
 		return Long.parseLong(statement.getAttr(Import.STATEMENT_EXECUTION_COUNT_ATTRIBUTE_NAME).toString());
 	}
 	
-	private FrontierStyledResult computeFrontierResult(Q origin, Q graph, int forward, int reverse){
+	private FrontierStyledResult computeFrontierResult(Q origin, Q graph, int forward, int reverse, Highlighter heatMap){
 		// calculate the complete result
 		Q fullForward = graph.forward(origin);
 		Q fullReverse = graph.reverse(origin);
@@ -154,8 +133,6 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 		Q f = origin.forwardStepOn(completeResult, forward);
 		Q r = origin.reverseStepOn(completeResult, reverse);
 		Q result = f.union(r).union(origin);
-		
-		Highlighter heatMap = computeHeatMap(result.nodes(XCSG.ControlFlow_Node).eval().nodes());
 		
 		// compute what is on the frontier
 		Q frontierForward = origin.forwardStepOn(completeResult, forward+1);
