@@ -1,9 +1,5 @@
 package com.kcsl.sidis.dis.ui.smart;
 
-import java.awt.Color;
-import java.util.HashMap;
-import java.util.Map.Entry;
-
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;

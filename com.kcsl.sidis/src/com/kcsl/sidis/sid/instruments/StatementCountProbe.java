@@ -9,23 +9,34 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.jimple.commons.transform.transforms.MethodCFGTransform;
 
 import soot.Body;
-import soot.Local;
-import soot.RefType;
 import soot.Scene;
-import soot.SootClass;
-import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.Jimple;
 import soot.jimple.StringConstant;
 import soot.util.Chain;
 
-public class StatementCounter extends MethodCFGTransform {
+public class StatementCountProbe extends MethodCFGTransform implements Probe {
 
+	@Override
+	public String getName() {
+		return "Statement Count";
+	}
+
+	@Override
+	public String getDescription() {
+		return "Efficiently counts the number of times a given statement is executed.";
+	}
+
+	@Override
+	public ProbeDataType[] captures() {
+		return new ProbeDataType[]{ ProbeDataType.EXECUTION_COUNTS };
+	}
+	
 	private AtlasSet<Node> selectedStatements;
 	
-	public StatementCounter(Node method, AtlasSet<Node> selectedStatements) {
-		super("statement_execution_counter", method);
+	public StatementCountProbe(Node method, AtlasSet<Node> selectedStatements) {
+		super("statement_count_probe", method);
 		this.selectedStatements = Common.toQ(cfgNodes).intersection(Common.toQ(selectedStatements)).eval().nodes();
 	}
 	

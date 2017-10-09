@@ -34,6 +34,7 @@ public class Import {
 			}
 			statementCounts.put(address, count);
 		}
+		scanner.close();
 		
 		saveStatementExecutionCounts(statementCounts);
 	}
@@ -62,6 +63,7 @@ public class Import {
 				}
 			}
 		}
+		scanner.close();
 		
 		// attribute each statement
 		saveStatementExecutionCounts(statementCounts);

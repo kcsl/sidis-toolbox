@@ -9,23 +9,34 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.jimple.commons.transform.transforms.MethodCFGTransform;
 
 import soot.Body;
-import soot.Local;
-import soot.RefType;
 import soot.Scene;
-import soot.SootClass;
-import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.Jimple;
 import soot.jimple.StringConstant;
 import soot.util.Chain;
 
-public class StatementCoveragePrinter extends MethodCFGTransform {
+public class StatementExecutionProbe extends MethodCFGTransform implements Probe {
 
+	@Override
+	public String getName() {
+		return "Statement Execution";
+	}
+
+	@Override
+	public String getDescription() {
+		return "Records when a statement is executed relative to other statements.";
+	}
+
+	@Override
+	public ProbeDataType[] captures() {
+		return new ProbeDataType[]{ ProbeDataType.EXECUTION_COUNTS, ProbeDataType.EXECUTION_ORDERINGS };
+	}
+	
 	private AtlasSet<Node> selectedStatements;
 	
-	public StatementCoveragePrinter(Node method, AtlasSet<Node> selectedStatements) {
-		super("statement_coverage_printer", method);
+	public StatementExecutionProbe(Node method, AtlasSet<Node> selectedStatements) {
+		super("statement_execution_probe", method);
 		this.selectedStatements = Common.toQ(cfgNodes).intersection(Common.toQ(selectedStatements)).eval().nodes();
 	}
 	
