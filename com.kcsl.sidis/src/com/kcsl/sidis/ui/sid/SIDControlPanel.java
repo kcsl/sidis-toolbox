@@ -1,4 +1,4 @@
-package com.kcsl.sidis.ui;
+package com.kcsl.sidis.ui.sid;
 
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -7,12 +7,12 @@ import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.SWT;
 
-public class SIDISControlPanel extends ViewPart {
+public class SIDControlPanel extends ViewPart {
 
-	public static final String ID = "com.kcsl.sidis.ui.controlpanel"; //$NON-NLS-1$
+	public static final String ID = "com.kcsl.sidis.ui.sid.controlpanel"; //$NON-NLS-1$
 
-	public SIDISControlPanel() {
-		setPartName("SIDIS Control Panel");
+	public SIDControlPanel() {
+		setPartName("SID Control Panel");
 		setTitleImage(ResourceManager.getPluginImage("com.kcsl.sidis", "icons/toolbox.gif"));
 	}
 
@@ -22,13 +22,6 @@ public class SIDISControlPanel extends ViewPart {
 	 */
 	@Override
 	public void createPartControl(Composite parent) {
-		
-		SashForm sashForm = new SashForm(parent, SWT.NONE);
-		
-		Composite composite = new Composite(sashForm, SWT.NONE);
-		
-		Composite composite_1 = new Composite(sashForm, SWT.NONE);
-		sashForm.setWeights(new int[] {1, 1});
 		
 	}
 

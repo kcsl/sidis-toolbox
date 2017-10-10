@@ -21,7 +21,7 @@
       </page>
    </extension>
 
-	<!-- add sidis smart views -->
+	<!-- add SIDIS smart views -->
     <extension
          point="com.ensoftcorp.atlas.ui.smartViewScript">
       <script
@@ -32,14 +32,22 @@
       </script>
    </extension>
     
-    <!-- extension for SIDIS control panel view -->
+    <!-- extension for SIDIS control panel views -->
 	<extension
          point="org.eclipse.ui.views">
       <view
             category="com.ensoftcorp.open.commons.views.categories.toolbox"
-            class="com.kcsl.sidis.ui.SIDISControlPanel"
-            id="com.kcsl.sidis.ui.controlpanel"
-            name="SIDIS Control Panel">
+            class="com.kcsl.sidis.ui.sid.SIDControlPanel"
+            id="com.kcsl.sidis.ui.sid.controlpanel"
+            icon="icons/toolbox.gif"
+            name="SID Control Panel">
+      </view>
+      <view
+            category="com.ensoftcorp.open.commons.views.categories.toolbox"
+            class="com.kcsl.sidis.ui.dis.DISControlPanel"
+            id="com.kcsl.sidis.ui.dis.controlpanel"
+            icon="icons/toolbox.gif"
+            name="DIS Control Panel">
       </view>
    </extension>
   
