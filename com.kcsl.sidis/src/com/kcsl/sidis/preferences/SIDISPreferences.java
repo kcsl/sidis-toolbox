@@ -81,6 +81,33 @@ public class SIDISPreferences extends AbstractPreferenceInitializer {
 	}
 	
 	/**
+	 * Enable/disable logarithmic scale heat map
+	 */
+	public static final String LOGARITHMIC_SCALE_HEAT_MAP = "LOGARITHMIC_SCALE_HEAT_MAP";
+	public static final Boolean LOGARITHMIC_SCALE_HEAT_MAP_DEFAULT = false;
+	private static boolean logarithmicHeatMapValue = LOGARITHMIC_SCALE_HEAT_MAP_DEFAULT;
+	
+	/**
+	 * Configures logarithmic scale heat map
+	 */
+	public static void enableLogarithmicScaleHeatMap(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(LOGARITHMIC_SCALE_HEAT_MAP, enabled);
+		loadPreferences();
+	}
+	
+	/**
+	 * Returns true if logarithmic scale heat map is enabled
+	 * @return
+	 */
+	public static boolean isLogarithmicScaleHeatMapEnabled(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return logarithmicHeatMapValue;
+	}
+	
+	/**
 	 * Enable/disable general logging
 	 */
 	public static final String GENERAL_LOGGING = "GENERAL_LOGGING";
@@ -107,6 +134,7 @@ public class SIDISPreferences extends AbstractPreferenceInitializer {
 	public void initializeDefaultPreferences() {
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		preferences.setDefault(PREFERRED_HEAT_MAP_COLOR_SCHEME, PREFERRED_HEAT_MAP_COLOR_SCHEME_DEFAULT);
+		preferences.setDefault(LOGARITHMIC_SCALE_HEAT_MAP, LOGARITHMIC_SCALE_HEAT_MAP_DEFAULT);
 		preferences.setDefault(GENERAL_LOGGING, GENERAL_LOGGING_DEFAULT);
 	}
 	
@@ -116,6 +144,7 @@ public class SIDISPreferences extends AbstractPreferenceInitializer {
 	public static void restoreDefaults(){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 		preferences.setValue(PREFERRED_HEAT_MAP_COLOR_SCHEME, PREFERRED_HEAT_MAP_COLOR_SCHEME_DEFAULT);
+		preferences.setValue(LOGARITHMIC_SCALE_HEAT_MAP, LOGARITHMIC_SCALE_HEAT_MAP_DEFAULT);
 		preferences.setValue(GENERAL_LOGGING, GENERAL_LOGGING_DEFAULT);
 		loadPreferences();
 	}
@@ -127,6 +156,7 @@ public class SIDISPreferences extends AbstractPreferenceInitializer {
 		try {
 			IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 			preferredHeatMapColorSchemeValue = preferences.getString(PREFERRED_HEAT_MAP_COLOR_SCHEME);
+			logarithmicHeatMapValue = preferences.getBoolean(LOGARITHMIC_SCALE_HEAT_MAP);
 			generalLoggingValue = preferences.getBoolean(GENERAL_LOGGING);
 		} catch (Exception e){
 			Log.warning("Error accessing SIDIS preferences, using defaults...", e);

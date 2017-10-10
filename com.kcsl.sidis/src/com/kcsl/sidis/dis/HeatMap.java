@@ -78,8 +78,24 @@ public class HeatMap {
 	 * @return
 	 */
 	public static double normalizeIntensity(long value, long minValue, long maxValue){
-		double range = maxValue - minValue;
-		return (value - minValue) / range;
+		double range = (double) maxValue - (double) minValue;
+		return ((double) value - (double) minValue) / range;
+	}
+
+	/**
+	 * Given the lower bound, upper bound, and actual value, normalize the
+	 * actual value to a log base 10 value between 0.0 and 1.0
+	 * @param value
+	 * @param minValue
+	 * @param maxValue
+	 * @return
+	 */
+	public static double normalizeLogarithmicIntensity(Long value, long minValue, long maxValue) {
+		double scaledValue = value == 0 ? 0.0 : Math.log10(value);
+		double scaledMinValue = minValue == 0 ? 0.0 : Math.log10(minValue);
+		double scaledMaxValue = maxValue == 0 ? 0.0 : Math.log10(maxValue);
+		double scaledRange = scaledMaxValue - scaledMinValue;
+		return (scaledValue - scaledMinValue) / scaledRange;
 	}
 	
 }

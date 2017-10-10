@@ -108,8 +108,14 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 			}
 			
 			for(Node statement : statements){
+				double intensity = 0.0;
 				Long statementExecutionCount = getStatementExecutionCount(statement);
-				double intensity = HeatMap.normalizeIntensity(statementExecutionCount, lowestValue, highestValue);
+				if(SIDISPreferences.isLogarithmicScaleHeatMapEnabled()){
+					intensity = HeatMap.normalizeLogarithmicIntensity(statementExecutionCount, lowestValue, highestValue);
+				} else {
+					intensity = HeatMap.normalizeIntensity(statementExecutionCount, lowestValue, highestValue);
+				}
+				
 				if(SIDISPreferences.isBlueRedColorGradiantEnabled()){
 					heatMap.highlightNodes(Common.toQ(statement), HeatMap.getBlueRedGradientHeatMapColor(intensity));
 				} else if(SIDISPreferences.isMonochromeColorGradiantEnabled()){
