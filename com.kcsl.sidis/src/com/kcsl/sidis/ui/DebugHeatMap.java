@@ -15,7 +15,7 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
 
-import com.kcsl.sidis.dis.HeatMap;
+import com.ensoftcorp.open.commons.highlighter.HeatMap;
 
 public class DebugHeatMap extends ViewPart {
 

@@ -30,6 +30,7 @@
    </extension>
     
     <!-- extension for Heat Map Debugger view -->
+    <!-- uncomment for debugging
 	<extension
          point="org.eclipse.ui.views">
       <view
@@ -39,5 +40,6 @@
             name="Debug Heat Map">
       </view>
    </extension>
+   -->
   
 </plugin>
