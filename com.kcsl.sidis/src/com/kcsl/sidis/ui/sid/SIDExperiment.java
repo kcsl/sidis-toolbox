@@ -1,10 +1,17 @@
 package com.kcsl.sidis.ui.sid;
 
+import java.io.File;
+
+import org.eclipse.core.resources.IProject;
+
 public class SIDExperiment implements Comparable<SIDExperiment> {
 
 	private String name;
 	private long createdAt;
-	
+	private IProject project = null;
+	private File jimpleDirectory = null;
+	private File originalBytecode = null;
+
 	public SIDExperiment(String name){
 		this.name = name;
 		this.createdAt = System.currentTimeMillis();
@@ -18,6 +25,30 @@ public class SIDExperiment implements Comparable<SIDExperiment> {
 		this.name = name;
 	}
 
+	public IProject getProject() {
+		return project;
+	}
+
+	public void setProject(IProject project) {
+		this.project = project;
+	}
+	
+	public File getJimpleDirectory() {
+		return jimpleDirectory;
+	}
+
+	public void setJimpleDirectory(File jimpleDirectory) {
+		this.jimpleDirectory = jimpleDirectory;
+	}
+
+	public File getOriginalBytecode() {
+		return originalBytecode;
+	}
+
+	public void setOriginalBytecode(File originalBytecode) {
+		this.originalBytecode = originalBytecode;
+	}
+	
 	@Override
 	public int compareTo(SIDExperiment other) {
 		return Long.compare(this.createdAt, other.createdAt);

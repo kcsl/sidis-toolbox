@@ -1,10 +1,15 @@
 package com.kcsl.sidis.ui.sid;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
@@ -12,13 +17,20 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.part.ViewPart;
@@ -27,9 +39,12 @@ import org.eclipse.wb.swt.ResourceManager;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.ui.selection.IAtlasSelectionListener;
 import com.ensoftcorp.atlas.ui.selection.SelectionUtil;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
+import com.ensoftcorp.open.commons.utilities.DisplayUtils;
+import com.ensoftcorp.open.jimple.commons.transform.Compilation;
 
 public class SIDControlPanel extends ViewPart {
 
@@ -45,6 +60,7 @@ public class SIDControlPanel extends ViewPart {
 	private static int experimentCounter = 1;
 	
 	private CTabFolder experimentFolder;
+	private Text transformationNameText;
 	
 	public SIDControlPanel() {
 		setPartName("SID Control Panel");
@@ -80,6 +96,11 @@ public class SIDControlPanel extends ViewPart {
 				}
 			}
 		});
+		
+		// uncomment to preview with window builder
+		SIDExperiment testExperiment = new SIDExperiment("TEST");
+		experiments.put("TEST", testExperiment);
+		addExperiment(experimentFolder, testExperiment);
 		
 		// create a new experiment if this is the first launch
 		if(!initialized){
@@ -143,13 +164,18 @@ public class SIDControlPanel extends ViewPart {
 		
 		Composite experimentControlPanelComposite = new Composite(experimentComposite, SWT.NONE);
 		experimentControlPanelComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		experimentControlPanelComposite.setLayout(new GridLayout(5, false));
+		experimentControlPanelComposite.setLayout(new GridLayout(2, false));
 		
 		Label experimentNameLabel = new Label(experimentControlPanelComposite, SWT.NONE);
+		experimentNameLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		experimentNameLabel.setSize(66, 14);
-		experimentNameLabel.setText("Experiment Label: ");
+		experimentNameLabel.setText("Experiment Name: ");
 		
-		final Text experimentLabelText = new Text(experimentControlPanelComposite, SWT.BORDER);
+		Composite experimentLabelComposite = new Composite(experimentControlPanelComposite, SWT.NONE);
+		experimentLabelComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		experimentLabelComposite.setLayout(new GridLayout(1, false));
+		
+		final Text experimentLabelText = new Text(experimentLabelComposite, SWT.BORDER);
 		experimentLabelText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		experimentLabelText.setText(experiment.getName());
 		
@@ -164,6 +190,120 @@ public class SIDControlPanel extends ViewPart {
 			}
 		});
 		
+		Label workspaceProjectLabel = new Label(experimentControlPanelComposite, SWT.NONE);
+		workspaceProjectLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		workspaceProjectLabel.setText("Workspace Project: ");
+		
+		Composite workspaceComposite = new Composite(experimentControlPanelComposite, SWT.NONE);
+		workspaceComposite.setLayout(new GridLayout(1, false));
+		workspaceComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Combo workspaceProjectCombo = new Combo(workspaceComposite, SWT.NONE);
+		workspaceProjectCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		workspaceProjectCombo.removeAll();
+		LinkedList<IProject> projects = getWorkspaceProjects();
+		for(IProject project : projects){
+			workspaceProjectCombo.add(project.getName());
+			workspaceProjectCombo.setData(project.getName(), project);
+		}
+		if(workspaceProjectCombo.getItemCount() == 1){
+			workspaceProjectCombo.select(0);
+			setExperimentProject(experiment, projects.getFirst());
+		}
+		
+		Label originalBytecodeLabel = new Label(experimentControlPanelComposite, SWT.NONE);
+		originalBytecodeLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		originalBytecodeLabel.setText("Original Bytecode: ");
+		
+		Composite orginalBytecodeComposite = new Composite(experimentControlPanelComposite, SWT.NONE);
+		orginalBytecodeComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		orginalBytecodeComposite.setLayout(new GridLayout(2, false));
+		
+		Button browseOriginalBytecodeButton = new Button(orginalBytecodeComposite, SWT.NONE);
+		browseOriginalBytecodeButton.setText("Browse...");
+		
+		Label originalBytecodePathLabel = new Label(orginalBytecodeComposite, SWT.NONE);
+		originalBytecodePathLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Label label = new Label(experimentComposite, SWT.SEPARATOR | SWT.HORIZONTAL);
+		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		SashForm sashForm = new SashForm(experimentComposite, SWT.NONE);
+		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		Composite transformationConfigurationComposite = new Composite(sashForm, SWT.NONE);
+		transformationConfigurationComposite.setLayout(new GridLayout(1, false));
+		
+		Composite transformationSelectionComposite = new Composite(transformationConfigurationComposite, SWT.NONE);
+		transformationSelectionComposite.setLayout(new GridLayout(2, false));
+		transformationSelectionComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Label transformationLabel = new Label(transformationSelectionComposite, SWT.NONE);
+		transformationLabel.setText("Transformation: ");
+		
+		Combo transformationCombo = new Combo(transformationSelectionComposite, SWT.NONE);
+		transformationCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Group transformationConfigurationGroup = new Group(transformationConfigurationComposite, SWT.NONE);
+		transformationConfigurationGroup.setText("Transformation Configurations");
+		transformationConfigurationGroup.setLayout(new GridLayout(1, false));
+		transformationConfigurationGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		Composite transformationNameComposite = new Composite(transformationConfigurationGroup, SWT.NONE);
+		transformationNameComposite.setLayout(new GridLayout(2, false));
+		transformationNameComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Label transformationNameLabel = new Label(transformationNameComposite, SWT.NONE);
+		transformationNameLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		transformationNameLabel.setText("Name: ");
+		
+		transformationNameText = new Text(transformationNameComposite, SWT.BORDER);
+		transformationNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Composite transformationConfigurationParametersComposite = new Composite(transformationConfigurationGroup, SWT.NONE);
+		transformationConfigurationParametersComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		Group appliedTransformationsGroup = new Group(sashForm, SWT.NONE);
+		appliedTransformationsGroup.setLayout(new GridLayout(1, false));
+		appliedTransformationsGroup.setText("Bytecode Transformations");
+		
+		List bytecodeTransformationList = new List(appliedTransformationsGroup, SWT.BORDER);
+		bytecodeTransformationList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		Composite appliedTransformationsControlsComposite = new Composite(appliedTransformationsGroup, SWT.NONE);
+		appliedTransformationsControlsComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		appliedTransformationsControlsComposite.setLayout(new GridLayout(2, false));
+		
+		Button deleteTransformationButton = new Button(appliedTransformationsControlsComposite, SWT.NONE);
+		deleteTransformationButton.setText("Delete");
+		
+		Button generateBytecodeButton = new Button(appliedTransformationsControlsComposite, SWT.NONE);
+		generateBytecodeButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
+		generateBytecodeButton.setText("Generate Bytecode");
+		sashForm.setWeights(new int[] {1, 1});
+		
+		workspaceProjectCombo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				IProject project = (IProject) workspaceProjectCombo.getData(workspaceProjectCombo.getText());
+				setExperimentProject(experiment, project);
+			}
+		});
+		
+		browseOriginalBytecodeButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+			}
+		});
+		
+		transformationCombo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+			}
+		});
+		
 		// set the tab selection to this newly created tab
 		experimentFolder.setSelection(experimentFolder.getItemCount()-1);
 	}
@@ -171,6 +311,17 @@ public class SIDControlPanel extends ViewPart {
 	@Override
 	public void setFocus() {
 		// intentionally left blank
+	}
+	
+	private void setExperimentProject(final SIDExperiment experiment, IProject project) {
+		experiment.setProject(project);
+		try {
+			experiment.setJimpleDirectory(Compilation.getJimpleDirectory(project.getLocation().toFile()));
+		} catch (IOException ex) {
+			String message = "Could not locate Jimple directory.";
+			Log.warning(message, ex);
+			DisplayUtils.showError(ex, message);
+		}
 	}
 	
 	private void setFocus(SIDExperiment experiment){
@@ -189,6 +340,23 @@ public class SIDControlPanel extends ViewPart {
 		}
 	}
 	
+	private static LinkedList<IProject> getWorkspaceProjects(){
+		LinkedList<IProject> projects = new LinkedList<IProject>();
+		for(IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()){
+			if(project.isOpen()){
+				// TODO: consider cross referencing with projects in Atlas index
+				projects.add(project);
+			}
+		}
+		Collections.sort(projects, new Comparator<IProject>(){
+			@Override
+			public int compare(IProject p1, IProject p2) {
+				return p1.getName().compareTo(p2.getName());
+			}
+		});
+		return projects;
+	}
+	
 	private static String getUniqueName(String experimentName){
 		int suffix = 2;
 		while(experiments.containsKey(experimentName)){
@@ -196,5 +364,4 @@ public class SIDControlPanel extends ViewPart {
 		}
 		return experimentName;
 	}
-	
 }
