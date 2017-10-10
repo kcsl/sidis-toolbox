@@ -272,6 +272,14 @@ public class SIDControlPanel extends ViewPart {
 		Composite transformationConfigurationParametersComposite = new Composite(transformationConfigurationGroup, SWT.NONE);
 		transformationConfigurationParametersComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
+		Composite composite = new Composite(transformationConfigurationGroup, SWT.NONE);
+		composite.setLayout(new GridLayout(1, false));
+		composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Button saveTransformationButton = new Button(composite, SWT.NONE);
+		saveTransformationButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
+		saveTransformationButton.setText("Save");
+		
 		Group appliedTransformationsGroup = new Group(sashForm, SWT.NONE);
 		appliedTransformationsGroup.setLayout(new GridLayout(1, false));
 		appliedTransformationsGroup.setText("Bytecode Transformations");
@@ -284,7 +292,7 @@ public class SIDControlPanel extends ViewPart {
 		appliedTransformationsControlsComposite.setLayout(new GridLayout(2, false));
 		
 		Button deleteTransformationButton = new Button(appliedTransformationsControlsComposite, SWT.NONE);
-		deleteTransformationButton.setText("Delete");
+		deleteTransformationButton.setText("Delete Transformation");
 		
 		Button generateBytecodeButton = new Button(appliedTransformationsControlsComposite, SWT.NONE);
 		generateBytecodeButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
