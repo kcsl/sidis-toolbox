@@ -1,6 +1,6 @@
 package com.kcsl.sidis.ui.sid;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -27,7 +27,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
@@ -39,11 +41,9 @@ import org.eclipse.wb.swt.ResourceManager;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
-import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.ui.selection.IAtlasSelectionListener;
 import com.ensoftcorp.atlas.ui.selection.SelectionUtil;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
-import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 import com.ensoftcorp.open.jimple.commons.transform.Compilation;
 
 public class SIDControlPanel extends ViewPart {
@@ -85,11 +85,11 @@ public class SIDControlPanel extends ViewPart {
 			public void close(CTabFolderEvent event) {
 				MessageBox messageBox = new MessageBox(Display.getCurrent().getActiveShell(),
 						SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-				messageBox.setMessage("Close SID experiment instance?");
+				String tabName = experimentFolder.getSelection().getText();
+				messageBox.setMessage("Close SID [" + tabName + "] instance?");
 				messageBox.setText("Closing Tab");
 				int response = messageBox.open();
 				if (response == SWT.YES) {
-					String tabName = experimentFolder.getSelection().getText();
 					experiments.remove(tabName);
 				} else {
 					event.doit = false;
@@ -206,10 +206,19 @@ public class SIDControlPanel extends ViewPart {
 			workspaceProjectCombo.add(project.getName());
 			workspaceProjectCombo.setData(project.getName(), project);
 		}
-		if(workspaceProjectCombo.getItemCount() == 1){
-			workspaceProjectCombo.select(0);
-			setExperimentProject(experiment, projects.getFirst());
-		}
+		
+		Label jimpleDirectoryLabel = new Label(experimentControlPanelComposite, SWT.NONE);
+		jimpleDirectoryLabel.setText("Jimple Directory: ");
+		
+		Composite jimpleDirectoryComposite = new Composite(experimentControlPanelComposite, SWT.NONE);
+		jimpleDirectoryComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		jimpleDirectoryComposite.setLayout(new GridLayout(2, false));
+		
+		Button browseJimpleDirectoryButton = new Button(jimpleDirectoryComposite, SWT.NONE);
+		browseJimpleDirectoryButton.setText("Browse...");
+		
+		Label jimpleDirectoryPathLabel = new Label(jimpleDirectoryComposite, SWT.NONE);
+		jimpleDirectoryPathLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Label originalBytecodeLabel = new Label(experimentControlPanelComposite, SWT.NONE);
 		originalBytecodeLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
@@ -282,18 +291,61 @@ public class SIDControlPanel extends ViewPart {
 		generateBytecodeButton.setText("Generate Bytecode");
 		sashForm.setWeights(new int[] {1, 1});
 		
+		// set the default project, if there is only one
+		if(workspaceProjectCombo.getItemCount() == 1){
+			workspaceProjectCombo.select(0);
+			setExperimentProject(experiment, projects.getFirst(), jimpleDirectoryPathLabel);
+		}
+		
+		browseJimpleDirectoryButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				DirectoryDialog dd = new DirectoryDialog(Display.getCurrent().getActiveShell(), SWT.OPEN);
+		        dd.setText("Open Jimple Directory");
+		        if(experiment.getProject() != null){
+		        	dd.setFilterPath(experiment.getProject().getLocation().toFile().getAbsolutePath());
+		        } else {
+		        	// just set it to user home directory
+		        	dd.setFilterPath(System.getProperty("user.home"));
+		        }
+		        String path = dd.open();
+		        if(path != null){
+		        	File jimpleDirectory = new File(path);
+			        experiment.setJimpleDirectory(jimpleDirectory);
+			        jimpleDirectoryPathLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
+					jimpleDirectoryPathLabel.setText(path);
+		        }
+			}
+		});
+		
 		workspaceProjectCombo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				IProject project = (IProject) workspaceProjectCombo.getData(workspaceProjectCombo.getText());
-				setExperimentProject(experiment, project);
+				setExperimentProject(experiment, project, jimpleDirectoryPathLabel);
 			}
 		});
 		
 		browseOriginalBytecodeButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				
+				FileDialog fd = new FileDialog(Display.getCurrent().getActiveShell(), SWT.OPEN);
+		        fd.setText("Select Original Bytecode");
+		        String[] filterExt = { "*.jar", "*.*" };
+		        fd.setFilterExtensions(filterExt);
+		        if(experiment.getProject() != null){
+		        	fd.setFilterPath(experiment.getProject().getLocation().toFile().getAbsolutePath());
+		        } else {
+		        	// just set it to user home directory
+		        	fd.setFilterPath(System.getProperty("user.home"));
+		        }
+		        String path = fd.open();
+		        if(path != null){
+		        	File originalBytecode = new File(path);
+			        experiment.setOriginalBytecode(originalBytecode);
+			        originalBytecodePathLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
+			        originalBytecodePathLabel.setText(path);
+		        }
 			}
 		});
 		
@@ -313,14 +365,13 @@ public class SIDControlPanel extends ViewPart {
 		// intentionally left blank
 	}
 	
-	private void setExperimentProject(final SIDExperiment experiment, IProject project) {
+	private void setExperimentProject(final SIDExperiment experiment, IProject project, Label jimpleDirectoryPathLabel) {
 		experiment.setProject(project);
 		try {
 			experiment.setJimpleDirectory(Compilation.getJimpleDirectory(project.getLocation().toFile()));
-		} catch (IOException ex) {
-			String message = "Could not locate Jimple directory.";
-			Log.warning(message, ex);
-			DisplayUtils.showError(ex, message);
+		} catch (Throwable t) {
+			jimpleDirectoryPathLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
+			jimpleDirectoryPathLabel.setText("Unable to auto locate Jimple directory.");
 		}
 	}
 	
