@@ -27,19 +27,20 @@
       <script
             class="com.kcsl.sidis.dis.ui.smart.ControlFlowHeatMapSmartView">
       </script>
+      <script
+            class="com.kcsl.sidis.dis.ui.smart.ExceptionalControlFlowHeatMapSmartView">
+      </script>
    </extension>
     
-    <!-- extension for Heat Map Debugger view -->
-    <!-- uncomment for debugging
+    <!-- extension for SIDIS control panel view -->
 	<extension
          point="org.eclipse.ui.views">
       <view
             category="com.ensoftcorp.open.commons.views.categories.toolbox"
-            class="com.kcsl.sidis.ui.DebugHeatMap"
-            id="com.kcsl.sidis.ui.debugheatmap"
-            name="Debug Heat Map">
+            class="com.kcsl.sidis.ui.SIDISControlPanel"
+            id="com.kcsl.sidis.ui.controlpanel"
+            name="SIDIS Control Panel">
       </view>
    </extension>
-   -->
   
 </plugin>
