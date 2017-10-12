@@ -52,6 +52,10 @@ import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 import com.ensoftcorp.open.commons.utilities.NodeSourceCorrespondenceSorter;
 import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.jimple.commons.transform.Compilation;
+import com.kcsl.sidis.log.Log;
+import com.kcsl.sidis.sid.instruments.Probe;
+
+import soot.Transform;
 
 public class SIDControlPanel extends ViewPart {
 
@@ -104,9 +108,9 @@ public class SIDControlPanel extends ViewPart {
 		});
 		
 		// uncomment to preview with window builder
-		SIDExperiment testExperiment = new SIDExperiment("TEST");
-		experiments.put("TEST", testExperiment);
-		addExperiment(experimentFolder, testExperiment);
+//		SIDExperiment testExperiment = new SIDExperiment("TEST");
+//		experiments.put("TEST", testExperiment);
+//		addExperiment(experimentFolder, testExperiment);
 		
 		// create a new experiment if this is the first launch
 		if(!initialized){
@@ -470,7 +474,38 @@ public class SIDControlPanel extends ViewPart {
 		generateBytecodeButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				
+				FileDialog fd = new FileDialog(Display.getCurrent().getActiveShell(), SWT.SAVE);
+		        fd.setText("Save Transformed Bytecode");
+		        String[] filterExt = { "*.jar", "*.*" };
+		        fd.setFilterExtensions(filterExt);
+		        if(experiment.getProject() != null){
+		        	fd.setFilterPath(experiment.getProject().getLocation().toFile().getAbsolutePath());
+		        } else {
+		        	// just set it to user home directory
+		        	fd.setFilterPath(System.getProperty("user.home"));
+		        }
+		        String path = fd.open();
+		        if(path != null){
+		        	File generatedBytecode = new File(path);
+		        	boolean allowPhantomReferences = false;
+		        	boolean generateClassFiles = true;
+		        	ArrayList<Transform> probeTransforms = new ArrayList<Transform>();
+		        	for(Probe probe : experiment.getStatementCounterProbeRequest().getProbes()){
+		        		probeTransforms.add(probe.getTransform());
+		        	}
+		        	Transform[] transforms = new Transform[probeTransforms.size()];
+		        	probeTransforms.toArray(transforms);
+			        try {
+						Compilation.compile(experiment.getProject(), experiment.getJimpleDirectory(), generatedBytecode, allowPhantomReferences, generateClassFiles, transforms);
+					} catch (Throwable t) {
+						String message = "Error compiling transformed bytecode.";
+						if(t.getMessage().contains("sidis.support")){
+							message += "\nDid you remember to include the SIDIS support classes?";
+						}
+						DisplayUtils.showError(t, message);
+						Log.error(message, t);
+					}
+		        }
 			}
 		});
 		

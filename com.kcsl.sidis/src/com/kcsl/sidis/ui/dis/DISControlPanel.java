@@ -1,11 +1,8 @@
 package com.kcsl.sidis.ui.dis;
 
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
-import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.SWT;
 
 public class DISControlPanel extends ViewPart {
 
