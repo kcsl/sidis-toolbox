@@ -8,15 +8,19 @@ public class SIDExperiment implements Comparable<SIDExperiment> {
 
 	private String name;
 	private long createdAt;
+	private StatementCounterProbeRequest statementCounterProbeRequest;
+	
 	private IProject project = null;
 	private File jimpleDirectory = null;
 	private File originalBytecode = null;
+	
 
 	public SIDExperiment(String name){
 		this.name = name;
 		this.createdAt = System.currentTimeMillis();
+		this.statementCounterProbeRequest = new StatementCounterProbeRequest();
 	}
-	
+
 	public String getName(){
 		return name;
 	}
@@ -47,6 +51,10 @@ public class SIDExperiment implements Comparable<SIDExperiment> {
 
 	public void setOriginalBytecode(File originalBytecode) {
 		this.originalBytecode = originalBytecode;
+	}
+	
+	public StatementCounterProbeRequest getStatementCounterProbeRequest() {
+		return statementCounterProbeRequest;
 	}
 	
 	@Override

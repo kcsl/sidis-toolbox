@@ -41,9 +41,12 @@ import org.eclipse.wb.swt.ResourceManager;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.atlas.ui.selection.IAtlasSelectionListener;
 import com.ensoftcorp.atlas.ui.selection.SelectionUtil;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
+import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.jimple.commons.transform.Compilation;
 
 public class SIDControlPanel extends ViewPart {
@@ -60,7 +63,6 @@ public class SIDControlPanel extends ViewPart {
 	private static int experimentCounter = 1;
 	
 	private CTabFolder experimentFolder;
-	private Text transformationNameText;
 	
 	public SIDControlPanel() {
 		setPartName("SID Control Panel");
@@ -98,9 +100,9 @@ public class SIDControlPanel extends ViewPart {
 		});
 		
 		// uncomment to preview with window builder
-		SIDExperiment testExperiment = new SIDExperiment("TEST");
-		experiments.put("TEST", testExperiment);
-		addExperiment(experimentFolder, testExperiment);
+//		SIDExperiment testExperiment = new SIDExperiment("TEST");
+//		experiments.put("TEST", testExperiment);
+//		addExperiment(experimentFolder, testExperiment);
 		
 		// create a new experiment if this is the first launch
 		if(!initialized){
@@ -252,52 +254,65 @@ public class SIDControlPanel extends ViewPart {
 		
 		Combo transformationCombo = new Combo(transformationSelectionComposite, SWT.NONE);
 		transformationCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		transformationCombo.setItems("Statement Counter Probe");
+		transformationCombo.select(0);
+		transformationCombo.setEnabled(false);
 		
 		Group transformationConfigurationGroup = new Group(transformationConfigurationComposite, SWT.NONE);
 		transformationConfigurationGroup.setText("Transformation Configurations");
 		transformationConfigurationGroup.setLayout(new GridLayout(1, false));
 		transformationConfigurationGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		Composite transformationNameComposite = new Composite(transformationConfigurationGroup, SWT.NONE);
-		transformationNameComposite.setLayout(new GridLayout(2, false));
-		transformationNameComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		Group statementCounterProbesGroup = new Group(transformationConfigurationGroup, SWT.NONE);
+		statementCounterProbesGroup.setText("Statement Counter Probes: 0");
+		statementCounterProbesGroup.setLayout(new GridLayout(2, false));
+		statementCounterProbesGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		Label transformationNameLabel = new Label(transformationNameComposite, SWT.NONE);
-		transformationNameLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		transformationNameLabel.setText("Name: ");
+		Label methodsLabel = new Label(statementCounterProbesGroup, SWT.NONE);
+		methodsLabel.setText("Methods: 0");
 		
-		transformationNameText = new Text(transformationNameComposite, SWT.BORDER);
-		transformationNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		Label statementsLabel = new Label(statementCounterProbesGroup, SWT.NONE);
+		statementsLabel.setText("Statements: 0");
+		
+		List methodsList = new List(statementCounterProbesGroup, SWT.BORDER);
+		methodsList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		List statementsList = new List(statementCounterProbesGroup, SWT.BORDER);
+		statementsList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		refreshMethodProbeLists(experiment, methodsList, methodsLabel, statementsList, statementsLabel);
 		
 		Composite transformationConfigurationParametersComposite = new Composite(transformationConfigurationGroup, SWT.NONE);
-		transformationConfigurationParametersComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		transformationConfigurationParametersComposite.setLayout(new GridLayout(1, false));
+		transformationConfigurationParametersComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
-		Composite composite = new Composite(transformationConfigurationGroup, SWT.NONE);
-		composite.setLayout(new GridLayout(1, false));
-		composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		Group graphSelectionsGroup = new Group(transformationConfigurationParametersComposite, SWT.NONE);
+		graphSelectionsGroup.setText("Graph Selections");
+		graphSelectionsGroup.setLayout(new GridLayout(2, false));
+		graphSelectionsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
-		Button saveTransformationButton = new Button(composite, SWT.NONE);
-		saveTransformationButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
-		saveTransformationButton.setText("Save");
+		Button addSelectedButton = new Button(graphSelectionsGroup, SWT.NONE);
+		addSelectedButton.setText("Add Selected");
+		
+		Button deleteSelectedButton = new Button(graphSelectionsGroup, SWT.NONE);
+		deleteSelectedButton.setText("Delete Selected");
 		
 		Group appliedTransformationsGroup = new Group(sashForm, SWT.NONE);
 		appliedTransformationsGroup.setLayout(new GridLayout(1, false));
 		appliedTransformationsGroup.setText("Bytecode Transformations");
 		
 		List bytecodeTransformationList = new List(appliedTransformationsGroup, SWT.BORDER);
+		bytecodeTransformationList.setItems(new String[] {"Statement Counter Probes: 0"});
 		bytecodeTransformationList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		Composite appliedTransformationsControlsComposite = new Composite(appliedTransformationsGroup, SWT.NONE);
 		appliedTransformationsControlsComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		appliedTransformationsControlsComposite.setLayout(new GridLayout(2, false));
-		
-		Button deleteTransformationButton = new Button(appliedTransformationsControlsComposite, SWT.NONE);
-		deleteTransformationButton.setText("Delete Transformation");
+		appliedTransformationsControlsComposite.setLayout(new GridLayout(1, false));
 		
 		Button generateBytecodeButton = new Button(appliedTransformationsControlsComposite, SWT.NONE);
 		generateBytecodeButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
 		generateBytecodeButton.setText("Generate Bytecode");
-		sashForm.setWeights(new int[] {1, 1});
+		sashForm.setWeights(new int[] {600, 301});
 		
 		// set the default project, if there is only one
 		if(workspaceProjectCombo.getItemCount() == 1){
@@ -357,15 +372,77 @@ public class SIDControlPanel extends ViewPart {
 			}
 		});
 		
-		transformationCombo.addSelectionListener(new SelectionAdapter() {
+		methodsList.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				if(methodsList.getSelectionCount() == 1){
+					String name = methodsList.getSelection()[0];
+					Node method = (Node) methodsList.getData(name);
+					StatementCounterProbeRequest request = experiment.getStatementCounterProbeRequest();
+					statementsList.removeAll();
+					AtlasSet<Node> statements = request.getRequestMethodStatements(method);
+					for(Node statement : statements){
+						String statementName = statement.getAttr(XCSG.name).toString();
+						statementsList.add(statementName);
+						statementsList.setData(statementName, statement);
+					}
+					statementsLabel.setText("Statements: " + statements.size());
+				}
+			}
+		});
+		
+		addSelectedButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				AtlasSet<Node> statements = selection.taggedWithAny(XCSG.ControlFlow_Node);
+				AtlasSet<Node> statementMethods = CommonQueries.getContainingMethods(Common.toQ(statements)).eval().nodes();
+				AtlasSet<Node> methods = selection.taggedWithAny(XCSG.Method);
+				methods = Common.toQ(methods).difference(Common.toQ(statementMethods)).eval().nodes();
 				
+				StatementCounterProbeRequest request = experiment.getStatementCounterProbeRequest();
+				request.addAllStatementProbes(methods);
+				for(Node statementMethod : statementMethods){
+					request.addStatementProbes(statementMethod, CommonQueries.cfg(statementMethod).intersection(Common.toQ(statements)).eval().nodes());
+				}
+				
+				refreshMethodProbeLists(experiment, methodsList, methodsLabel, statementsList, statementsLabel);
+			}
+		});
+		
+		deleteSelectedButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				AtlasSet<Node> statements = selection.taggedWithAny(XCSG.ControlFlow_Node);
+				AtlasSet<Node> statementMethods = CommonQueries.getContainingMethods(Common.toQ(statements)).eval().nodes();
+				AtlasSet<Node> methods = selection.taggedWithAny(XCSG.Method);
+				methods = Common.toQ(methods).difference(Common.toQ(statementMethods)).eval().nodes();
+				
+				StatementCounterProbeRequest request = experiment.getStatementCounterProbeRequest();
+				request.removeAllStatementProbes(methods);
+				for(Node statementMethod : statementMethods){
+					request.removeStatementProbes(statementMethod, CommonQueries.cfg(statementMethod).intersection(Common.toQ(statements)).eval().nodes());
+				}
+				
+				refreshMethodProbeLists(experiment, methodsList, methodsLabel, statementsList, statementsLabel);
 			}
 		});
 		
 		// set the tab selection to this newly created tab
 		experimentFolder.setSelection(experimentFolder.getItemCount()-1);
+	}
+
+	private void refreshMethodProbeLists(final SIDExperiment experiment, List methodsList, Label methodsLabel, List statementsList, Label statementsLabel) {
+		StatementCounterProbeRequest request = experiment.getStatementCounterProbeRequest();
+		methodsList.removeAll();
+		statementsList.removeAll();
+		AtlasSet<Node> methods = request.getRequestMethods();
+		for(Node method : methods){
+			String name = CommonQueries.getQualifiedMethodName(method);
+			methodsList.add(name);
+			methodsList.setData(name, method);
+		}
+		methodsLabel.setText("Methods: " + methods.size());
+		statementsLabel.setText("Statements: 0");
 	}
 
 	@Override
