@@ -18,6 +18,8 @@ import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TraverseEvent;
@@ -46,6 +48,8 @@ import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.atlas.ui.selection.IAtlasSelectionListener;
 import com.ensoftcorp.atlas.ui.selection.SelectionUtil;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
+import com.ensoftcorp.open.commons.utilities.DisplayUtils;
+import com.ensoftcorp.open.commons.utilities.NodeSourceCorrespondenceSorter;
 import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.jimple.commons.transform.Compilation;
 
@@ -100,9 +104,9 @@ public class SIDControlPanel extends ViewPart {
 		});
 		
 		// uncomment to preview with window builder
-//		SIDExperiment testExperiment = new SIDExperiment("TEST");
-//		experiments.put("TEST", testExperiment);
-//		addExperiment(experimentFolder, testExperiment);
+		SIDExperiment testExperiment = new SIDExperiment("TEST");
+		experiments.put("TEST", testExperiment);
+		addExperiment(experimentFolder, testExperiment);
 		
 		// create a new experiment if this is the first launch
 		if(!initialized){
@@ -269,15 +273,17 @@ public class SIDControlPanel extends ViewPart {
 		statementCounterProbesGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		Label methodsLabel = new Label(statementCounterProbesGroup, SWT.NONE);
+		methodsLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		methodsLabel.setText("Methods: 0");
 		
 		Label statementsLabel = new Label(statementCounterProbesGroup, SWT.NONE);
+		statementsLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		statementsLabel.setText("Statements: 0");
 		
-		List methodsList = new List(statementCounterProbesGroup, SWT.BORDER);
+		List methodsList = new List(statementCounterProbesGroup, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		methodsList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		List statementsList = new List(statementCounterProbesGroup, SWT.BORDER);
+		List statementsList = new List(statementCounterProbesGroup, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		statementsList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		refreshMethodProbeLists(experiment, methodsList, methodsLabel, statementsList, statementsLabel);
@@ -301,7 +307,7 @@ public class SIDControlPanel extends ViewPart {
 		appliedTransformationsGroup.setLayout(new GridLayout(1, false));
 		appliedTransformationsGroup.setText("Bytecode Transformations");
 		
-		List bytecodeTransformationList = new List(appliedTransformationsGroup, SWT.BORDER);
+		List bytecodeTransformationList = new List(appliedTransformationsGroup, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		bytecodeTransformationList.setItems(new String[] {"Statement Counter Probes: 0"});
 		bytecodeTransformationList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
@@ -310,6 +316,7 @@ public class SIDControlPanel extends ViewPart {
 		appliedTransformationsControlsComposite.setLayout(new GridLayout(1, false));
 		
 		Button generateBytecodeButton = new Button(appliedTransformationsControlsComposite, SWT.NONE);
+		generateBytecodeButton.setEnabled(false);
 		generateBytecodeButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
 		generateBytecodeButton.setText("Generate Bytecode");
 		sashForm.setWeights(new int[] {600, 301});
@@ -317,7 +324,7 @@ public class SIDControlPanel extends ViewPart {
 		// set the default project, if there is only one
 		if(workspaceProjectCombo.getItemCount() == 1){
 			workspaceProjectCombo.select(0);
-			setExperimentProject(experiment, projects.getFirst(), jimpleDirectoryPathLabel);
+			setExperimentProject(experiment, projects.getFirst(), jimpleDirectoryPathLabel, generateBytecodeButton);
 		}
 		
 		browseJimpleDirectoryButton.addSelectionListener(new SelectionAdapter() {
@@ -338,6 +345,7 @@ public class SIDControlPanel extends ViewPart {
 			        jimpleDirectoryPathLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
 					jimpleDirectoryPathLabel.setText(path);
 		        }
+		        validateGenerateBytecodeButton(experiment, generateBytecodeButton);
 			}
 		});
 		
@@ -345,7 +353,7 @@ public class SIDControlPanel extends ViewPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				IProject project = (IProject) workspaceProjectCombo.getData(workspaceProjectCombo.getText());
-				setExperimentProject(experiment, project, jimpleDirectoryPathLabel);
+				setExperimentProject(experiment, project, jimpleDirectoryPathLabel, generateBytecodeButton);
 			}
 		});
 		
@@ -372,6 +380,28 @@ public class SIDControlPanel extends ViewPart {
 			}
 		});
 		
+		methodsList.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				if(methodsList.getSelectionCount() == 1){
+					String name = methodsList.getSelection()[0];
+					Node method = (Node) methodsList.getData(name);
+					DisplayUtils.show(method, CommonQueries.getQualifiedMethodName(method));
+				}
+			}
+		});
+		
+		statementsList.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				if(methodsList.getSelectionCount() == 1){
+					String name = statementsList.getSelection()[0];
+					Node statement = (Node) statementsList.getData(statementsList.getSelectionIndex() + name);
+					DisplayUtils.show(Common.toQ(statement), CommonQueries.getQualifiedName(statement));
+				}
+			}
+		});
+		
 		methodsList.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -381,12 +411,18 @@ public class SIDControlPanel extends ViewPart {
 					StatementCounterProbeRequest request = experiment.getStatementCounterProbeRequest();
 					statementsList.removeAll();
 					AtlasSet<Node> statements = request.getRequestMethodStatements(method);
+					ArrayList<Node> sortedStatements = new ArrayList<Node>((int) statements.size());
 					for(Node statement : statements){
+						sortedStatements.add(statement);
+					}
+					Collections.sort(sortedStatements, new NodeSourceCorrespondenceSorter());
+					int index = 0; // qualifying key with list index because statements could have colliding names
+					for(Node statement : sortedStatements){
 						String statementName = statement.getAttr(XCSG.name).toString();
 						statementsList.add(statementName);
-						statementsList.setData(statementName, statement);
+						statementsList.setData((index++) + statementName, statement);
 					}
-					statementsLabel.setText("Statements: " + statements.size());
+					statementsLabel.setText("Statements: " + sortedStatements.size());
 				}
 			}
 		});
@@ -406,6 +442,8 @@ public class SIDControlPanel extends ViewPart {
 				}
 				
 				refreshMethodProbeLists(experiment, methodsList, methodsLabel, statementsList, statementsLabel);
+				refreshTotalProbesCount(request.getTotalStatementProbeRequests(), statementCounterProbesGroup, bytecodeTransformationList);
+				validateGenerateBytecodeButton(experiment, generateBytecodeButton);
 			}
 		});
 		
@@ -424,11 +462,25 @@ public class SIDControlPanel extends ViewPart {
 				}
 				
 				refreshMethodProbeLists(experiment, methodsList, methodsLabel, statementsList, statementsLabel);
+				refreshTotalProbesCount(request.getTotalStatementProbeRequests(), statementCounterProbesGroup, bytecodeTransformationList);
+				validateGenerateBytecodeButton(experiment, generateBytecodeButton);
+			}
+		});
+		
+		generateBytecodeButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
 			}
 		});
 		
 		// set the tab selection to this newly created tab
 		experimentFolder.setSelection(experimentFolder.getItemCount()-1);
+	}
+	
+	private void refreshTotalProbesCount(int totalProbes, Group statementCounterProbesGroup, List bytecodeTransformationList){
+		statementCounterProbesGroup.setText("Statement Counter Probes: " + totalProbes);
+		bytecodeTransformationList.setItems(new String[] {"Statement Counter Probes: " + totalProbes});
 	}
 
 	private void refreshMethodProbeLists(final SIDExperiment experiment, List methodsList, Label methodsLabel, List statementsList, Label statementsLabel) {
@@ -436,7 +488,19 @@ public class SIDControlPanel extends ViewPart {
 		methodsList.removeAll();
 		statementsList.removeAll();
 		AtlasSet<Node> methods = request.getRequestMethods();
+		ArrayList<Node> sortedMethods = new ArrayList<Node>((int) methods.size());
 		for(Node method : methods){
+			sortedMethods.add(method);
+		}
+		Collections.sort(sortedMethods, new Comparator<Node>(){
+			@Override
+			public int compare(Node m1, Node m2) {
+				String qm1 = CommonQueries.getQualifiedMethodName(m1);
+				String qm2 = CommonQueries.getQualifiedMethodName(m2);
+				return qm1.compareTo(qm2);
+			}
+		});
+		for(Node method : sortedMethods){
 			String name = CommonQueries.getQualifiedMethodName(method);
 			methodsList.add(name);
 			methodsList.setData(name, method);
@@ -450,14 +514,36 @@ public class SIDControlPanel extends ViewPart {
 		// intentionally left blank
 	}
 	
-	private void setExperimentProject(final SIDExperiment experiment, IProject project, Label jimpleDirectoryPathLabel) {
+	private void validateGenerateBytecodeButton(SIDExperiment experiment, Button generateBytecodeButton){
+		if(experiment.getProject() == null){
+			generateBytecodeButton.setEnabled(false);
+			return;
+		}
+		if(experiment.getJimpleDirectory() == null){
+			generateBytecodeButton.setEnabled(false);
+			return;
+		}
+		if(experiment.getStatementCounterProbeRequest().getTotalStatementProbeRequests() == 0){
+			generateBytecodeButton.setEnabled(false);
+			return;
+		}
+		
+		generateBytecodeButton.setEnabled(true);
+	}
+	
+	private void setExperimentProject(SIDExperiment experiment, IProject project, Label jimpleDirectoryPathLabel, Button generateBytecodeButton) {
 		experiment.setProject(project);
 		try {
-			experiment.setJimpleDirectory(Compilation.getJimpleDirectory(project.getLocation().toFile()));
+			File jimpleDirectoryPath = Compilation.getJimpleDirectory(project.getLocation().toFile());
+			experiment.setJimpleDirectory(jimpleDirectoryPath);
+			jimpleDirectoryPathLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
+			jimpleDirectoryPathLabel.setText(jimpleDirectoryPath.getAbsolutePath());
 		} catch (Throwable t) {
+			experiment.setJimpleDirectory(null);
 			jimpleDirectoryPathLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
 			jimpleDirectoryPathLabel.setText("Unable to auto locate Jimple directory.");
 		}
+		validateGenerateBytecodeButton(experiment, generateBytecodeButton);
 	}
 	
 	private void setFocus(SIDExperiment experiment){

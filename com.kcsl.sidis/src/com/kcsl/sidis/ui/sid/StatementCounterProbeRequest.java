@@ -15,6 +15,7 @@ import com.kcsl.sidis.sid.instruments.StatementCountProbe;
 
 public class StatementCounterProbeRequest implements TransformationRequest {
 
+	private int totalStatementProbeRequests = 0;
 	private HashMap<Node,AtlasSet<Node>> requests = new HashMap<Node,AtlasSet<Node>>();
 	
 	public StatementCounterProbeRequest(){}
@@ -38,7 +39,10 @@ public class StatementCounterProbeRequest implements TransformationRequest {
 	public void removeAllStatementProbes(AtlasSet<Node> methods){
 		checkMethodInput(methods);
 		for(Node method : methods){
-			requests.remove(method);
+			AtlasSet<Node> statements = requests.remove(method);
+			if(statements != null){
+				totalStatementProbeRequests -= statements.size();
+			}
 		}
 	}
 	
@@ -68,7 +72,11 @@ public class StatementCounterProbeRequest implements TransformationRequest {
 		if(requestedStatements == null){
 			requestedStatements = new AtlasHashSet<Node>();
 		}
-		requestedStatements.addAll(statements);
+		for(Node statement : statements){
+			if(requestedStatements.add(statement)){
+				totalStatementProbeRequests++;
+			}
+		}
 		if(!requestedStatements.isEmpty()){
 			requests.put(method, requestedStatements);
 		}
@@ -84,6 +92,8 @@ public class StatementCounterProbeRequest implements TransformationRequest {
 		for(Node requestedStatement : requestedStatements){
 			if(!statements.contains(requestedStatement)){
 				statementsToSave.add(requestedStatement);
+			} else {
+				totalStatementProbeRequests--;;
 			}
 		}
 		if(!statementsToSave.isEmpty()){
@@ -131,6 +141,10 @@ public class StatementCounterProbeRequest implements TransformationRequest {
 	@Override
 	public String getDescription() {
 		return "Instruments statements with an in memory counter that increments each time the statement is executed.";
+	}
+
+	public int getTotalStatementProbeRequests() {
+		return totalStatementProbeRequests;
 	}
 
 }
