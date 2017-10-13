@@ -22,6 +22,7 @@ import com.ensoftcorp.open.commons.highlighter.HeatMap;
 import com.kcsl.sidis.dis.Import;
 import com.kcsl.sidis.log.Log;
 import com.kcsl.sidis.preferences.SIDISPreferences;
+import com.kcsl.sidis.ui.overlay.HeatMapOverlay;
 
 /**
  * A Control Flow Smart view that overlays a heat map of statement coverage from
@@ -79,7 +80,7 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 			Q containingFunctions = CommonQueries.getContainingFunctions(selectedStatements);
 			Q cfgs = CommonQueries.cfg(containingFunctions);
 	
-			Highlighter heatMap = computeHeatMap(cfgs.nodes(XCSG.ControlFlow_Node).eval().nodes());
+			Highlighter heatMap = HeatMapOverlay.computeHeatMap(cfgs.nodes(XCSG.ControlFlow_Node).eval().nodes());
 			return computeFrontierResult(selectedStatements, cfgs, forward, reverse, heatMap);
 		} else {
 			// a function was selected possibly along with cfg nodes
@@ -98,52 +99,9 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 			// just pretend the entire cfg was selected for selected functions
 			selectedStatements = selectedStatements.union(selectedFunctionCFGs);
 			
-			Highlighter heatMap = computeHeatMap(cfgs.union(selectedFunctionCFGs).nodes(XCSG.ControlFlow_Node).eval().nodes());
+			Highlighter heatMap = HeatMapOverlay.computeHeatMap(cfgs.union(selectedFunctionCFGs).nodes(XCSG.ControlFlow_Node).eval().nodes());
 			return computeFrontierResult(selectedStatements, cfgs, forward, reverse, heatMap);
 		}
-	}
-	
-	private Highlighter computeHeatMap(AtlasSet<Node> statements){
-		Highlighter heatMap = new Highlighter();
-		
-		statements = new AtlasHashSet<Node>(Common.toQ(statements).selectNode(Import.STATEMENT_EXECUTION_COUNT_ATTRIBUTE_NAME).eval().nodes());
-		if(!statements.isEmpty()){
-			long lowestValue = Long.MAX_VALUE;
-			long highestValue = Long.MIN_VALUE;
-			
-			// find the min and max statement execution counts
-			for(Node statement : statements){
-				Long statementExecutionCount = getStatementExecutionCount(statement);
-				lowestValue = Math.min(lowestValue, statementExecutionCount);
-				highestValue = Math.max(highestValue, statementExecutionCount);
-			}
-			
-			for(Node statement : statements){
-				double intensity = 0.0;
-				Long statementExecutionCount = getStatementExecutionCount(statement);
-				if(SIDISPreferences.isLogarithmicScaleHeatMapEnabled()){
-					intensity = HeatMap.normalizeLogarithmicIntensity(statementExecutionCount, lowestValue, highestValue);
-				} else {
-					intensity = HeatMap.normalizeIntensity(statementExecutionCount, lowestValue, highestValue);
-				}
-				
-				if(SIDISPreferences.isBlueRedColorGradiantEnabled()){
-					heatMap.highlightNodes(Common.toQ(statement), HeatMap.getBlueRedGradientHeatMapColor(intensity));
-				} else if(SIDISPreferences.isMonochromeColorGradiantEnabled()){
-					heatMap.highlightNodes(Common.toQ(statement), HeatMap.getMonochromeHeatMapColor(intensity));
-				} else if(SIDISPreferences.isInvertedMonochromeColorGradiantEnabled()){
-					heatMap.highlightNodes(Common.toQ(statement), HeatMap.getInvertedMonochromeHeatMapColor(intensity));
-				} else {
-					Log.warning("No preferred heat map color scheme is configured.");
-				}
-			}
-		}
-		
-		return heatMap;
-	}
-
-	private static Long getStatementExecutionCount(Node statement){
-		return Long.parseLong(statement.getAttr(Import.STATEMENT_EXECUTION_COUNT_ATTRIBUTE_NAME).toString());
 	}
 	
 	private FrontierStyledResult computeFrontierResult(Q origin, Q graph, int forward, int reverse, Highlighter heatMap){

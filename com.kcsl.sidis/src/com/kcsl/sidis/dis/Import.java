@@ -12,6 +12,7 @@ import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
+import com.kcsl.sidis.log.Log;
 
 public class Import {
 	
@@ -74,7 +75,11 @@ public class Import {
 			String address = entry.getKey();
 			String count = entry.getValue().toString();
 			Node statement = CommonQueries.getNodeByAddress(address);
-			statement.putAttr(STATEMENT_EXECUTION_COUNT_ATTRIBUTE_NAME, count);
+			if(statement != null){
+				statement.putAttr(STATEMENT_EXECUTION_COUNT_ATTRIBUTE_NAME, count);
+			} else {
+				Log.warning("Statement: " + address + " does not exist.");
+			}
 		}
 	}
 
