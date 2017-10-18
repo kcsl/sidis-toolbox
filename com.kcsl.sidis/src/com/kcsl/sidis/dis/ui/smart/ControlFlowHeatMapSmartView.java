@@ -1,7 +1,6 @@
 package com.kcsl.sidis.dis.ui.smart;
 
 import com.ensoftcorp.atlas.core.db.graph.Node;
-import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.highlight.Highlighter;
 import com.ensoftcorp.atlas.core.markup.MarkupFromH;
@@ -18,10 +17,6 @@ import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
-import com.ensoftcorp.open.commons.highlighter.HeatMap;
-import com.kcsl.sidis.dis.Import;
-import com.kcsl.sidis.log.Log;
-import com.kcsl.sidis.preferences.SIDISPreferences;
 import com.kcsl.sidis.ui.overlay.HeatMapOverlay;
 
 /**
