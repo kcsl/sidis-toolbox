@@ -134,9 +134,9 @@ public class SIDControlPanel extends ViewPart {
 		});
 		
 		// uncomment to preview with window builder
-//		SIDExperiment testExperiment = new SIDExperiment("TEST");
-//		experiments.put("TEST", testExperiment);
-//		addExperiment(experimentFolder, testExperiment);
+		SIDExperiment testExperiment = new SIDExperiment("TEST");
+		experiments.put("TEST", testExperiment);
+		addExperiment(experimentFolder, testExperiment);
 		
 		// create a new experiment if this is the first launch
 		if(!initialized){
@@ -343,7 +343,10 @@ public class SIDControlPanel extends ViewPart {
 		
 		Composite appliedTransformationsControlsComposite = new Composite(appliedTransformationsGroup, SWT.NONE);
 		appliedTransformationsControlsComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		appliedTransformationsControlsComposite.setLayout(new GridLayout(1, false));
+		appliedTransformationsControlsComposite.setLayout(new GridLayout(2, false));
+		
+		Button debugCheckbox = new Button(appliedTransformationsControlsComposite, SWT.CHECK);
+		debugCheckbox.setText("Debug");
 		
 		Button generateBytecodeButton = new Button(appliedTransformationsControlsComposite, SWT.NONE);
 		generateBytecodeButton.setEnabled(false);
@@ -520,7 +523,7 @@ public class SIDControlPanel extends ViewPart {
 		        	}
 		        	
 		        	boolean allowPhantomReferences = false;
-		        	boolean generateClassFiles = true;
+		        	boolean generateClassFiles = !debugCheckbox.getSelection();
 		        	ArrayList<Transform> probeTransforms = new ArrayList<Transform>();
 		        	for(Probe probe : experiment.getStatementCounterProbeRequest().getProbes()){
 		        		probeTransforms.add(probe.getTransform());
