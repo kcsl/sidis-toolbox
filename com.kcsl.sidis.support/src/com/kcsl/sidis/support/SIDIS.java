@@ -43,7 +43,7 @@ public class SIDIS {
 		counts.put(address, count);
 	}
 	
-	public void printCardinality(String address, Object o){
+	public static void printCardinality(String address, Object o){
 		if(o != null){
 			if(o instanceof Collection){
 				@SuppressWarnings("rawtypes")
@@ -87,7 +87,7 @@ public class SIDIS {
 			println(address + ":null");
 		}
 	}
-	
+
 	public static void println(String value){
 		out.println(value);
 		out.flush();

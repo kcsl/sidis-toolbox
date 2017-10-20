@@ -10,9 +10,8 @@ import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
-import com.kcsl.sidis.sid.instruments.CardinalityProbe;
-import com.kcsl.sidis.sid.instruments.Probe;
 import com.kcsl.sidis.sid.instruments.StatementCountProbe;
+import com.kcsl.sidis.sid.instruments.Probe;
 
 public class StatementCounterProbeRequest implements TransformationRequest {
 
@@ -124,7 +123,7 @@ public class StatementCounterProbeRequest implements TransformationRequest {
 		for(Entry<Node,AtlasSet<Node>> request : requests.entrySet()){
 			Node method = request.getKey();
 			AtlasSet<Node> statements = request.getValue();
-			CardinalityProbe probe = new CardinalityProbe(method, statements);
+			StatementCountProbe probe = new StatementCountProbe(method, statements);
 			probes.add(probe);
 		}
 		return probes;

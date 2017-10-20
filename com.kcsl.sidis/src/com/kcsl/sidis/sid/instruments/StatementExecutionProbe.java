@@ -41,23 +41,23 @@ public class StatementExecutionProbe extends MethodCFGTransform implements Probe
 	}
 	
 	@Override
-	protected void transform(Body methodBody, Map<Unit,Node> atlasCorrespondence) {
+	protected void transform(Body methodBody, Map<Unit,Node> atlasControlFlowNodeCorrespondence) {
 		Chain<Unit> statements = methodBody.getUnits();
 		Iterator<Unit> methodBodyUnitsIterator = statements.snapshotIterator();
 		while(methodBodyUnitsIterator.hasNext()){
 			Unit statement = methodBodyUnitsIterator.next();
-			Node atlasNode = atlasCorrespondence.get(statement);
+			Node atlasNode = atlasControlFlowNodeCorrespondence.get(statement);
 			if(atlasNode != null && selectedStatements.contains(atlasNode) && !restrictedRegion.contains(atlasNode)){
 				insertPrintBeforeStatement(statements, statement, atlasNode.address().toAddressString());
 			}
 		}
 	}
 	
-	private void insertPrintBeforeStatement(Chain<Unit> statements, Unit statement, String value) {
-		// insert "SIDIS.println(<value>);"
+	private void insertPrintBeforeStatement(Chain<Unit> statements, Unit statement, String address) {
+		// insert "SIDIS.println(<address>);"
 		SootMethod printlnCallsite = Scene.v().getSootClass("com.kcsl.sidis.support.SIDIS").getMethod("void println(java.lang.String)");
 		statements.insertBefore(Jimple.v().newInvokeStmt(
-				Jimple.v().newStaticInvokeExpr(printlnCallsite.makeRef(), StringConstant.v(value))),
+				Jimple.v().newStaticInvokeExpr(printlnCallsite.makeRef(), StringConstant.v(address))),
 				statement);
 	}
 

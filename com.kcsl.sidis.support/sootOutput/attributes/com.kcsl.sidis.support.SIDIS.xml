@@ -4,7 +4,7 @@
 <srcPos sline="0" eline="0" spos="0" epos="0"/>
 <jmpPos sline="0" eline="0" spos="0" epos="0"/>
 <text info="[inner=com/kcsl/sidis/support/SIDIS$1, outer=null, name=null,flags=0]" aType="InnerClassTag"/>
-<text info="soot.tagkit.InnerClassAttribute@6ae99671" aType="InnerClassAttribute"/>
+<text info="soot.tagkit.InnerClassAttribute@7612d818" aType="InnerClassAttribute"/>
 </attribute>
 <attribute>
 <srcPos sline="0" eline="0" spos="0" epos="0"/>

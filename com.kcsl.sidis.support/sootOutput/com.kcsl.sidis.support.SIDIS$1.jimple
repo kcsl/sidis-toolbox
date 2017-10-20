@@ -35,7 +35,7 @@ class com.kcsl.sidis.support.SIDIS$1 extends java.lang.Object implements java.la
 
         $r4 = new java.io.File;
 
-        specialinvoke $r4.<java.io.File: void <init>(java.lang.String)>("sidis.dat");
+        specialinvoke $r4.<java.io.File: void <init>(java.lang.String)>("sidis.ec.dat");
 
         specialinvoke $r3.<java.io.FileWriter: void <init>(java.io.File)>($r4);
 
