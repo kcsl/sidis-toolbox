@@ -20,5 +20,6 @@ Require-Bundle: org.eclipse.ui,
  com.ensoftcorp.open.jimple.commons;bundle-version="3.2.0"
 Export-Package: com.kcsl.sidis.dis,
  com.kcsl.sidis.preferences,
+ com.kcsl.sidis.sid,
  com.kcsl.sidis.ui.overlay
 Bundle-Activator: com.kcsl.sidis.Activator
