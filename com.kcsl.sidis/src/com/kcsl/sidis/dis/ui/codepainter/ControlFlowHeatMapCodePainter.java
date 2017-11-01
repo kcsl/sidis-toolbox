@@ -96,22 +96,17 @@ public class ControlFlowHeatMapCodePainter extends CodePainter {
 	}
 	
 	private UnstyledFrontierResult computeFrontierResult(Q origin, Q graph, int forward, int reverse){
-		// calculate the complete result
-		Q fullForward = graph.forward(origin);
-		Q fullReverse = graph.reverse(origin);
-		Q completeResult = fullForward.union(fullReverse);
-		
 		// compute what to show for current steps
-		Q f = origin.forwardStepOn(completeResult, forward);
-		Q r = origin.reverseStepOn(completeResult, reverse);
-		Q result = f.union(r).union(origin);
+		Q f = origin.forwardStepOn(graph, forward);
+		Q r = origin.reverseStepOn(graph, reverse);
+		Q result = f.union(r);
 		
 		// compute what is on the frontier
-		Q frontierForward = origin.forwardStepOn(completeResult, forward+1);
+		Q frontierForward = origin.forwardStepOn(graph, forward+1);
 		frontierForward = frontierForward.retainEdges().differenceEdges(result);
-		Q frontierReverse = origin.reverseStepOn(completeResult, reverse+1);
+		Q frontierReverse = origin.reverseStepOn(graph, reverse+1);
 		frontierReverse = frontierReverse.retainEdges().differenceEdges(result);
-
+		
 		// show the result
 		return new UnstyledFrontierResult(result, frontierReverse, frontierForward);
 	}
