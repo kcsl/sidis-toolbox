@@ -31,6 +31,11 @@
             class="com.kcsl.sidis.dis.ui.smart.ExceptionalControlFlowHeatMapSmartView">
       </script>
    </extension>
+   
+    <!-- adds codepainter definitions -->
+   <extension point="com.ensoftcorp.open.commons.codepainter">
+      <codepainter class="com.kcsl.sidis.dis.ui.codepainter.ControlFlowHeatMapCodePainter"></codepainter>
+   </extension>
     
     <!-- extension for SIDIS control panel views -->
 	<extension
