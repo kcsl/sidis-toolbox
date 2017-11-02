@@ -5,7 +5,6 @@ import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
-import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.analysis.CallSiteAnalysis;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codepainter.CodePainter;
@@ -35,6 +34,15 @@ public class ControlFlowHeatMapCodePainter extends CodePainter {
 	protected String[] getSupportedEdgeTags() {
 		return NOTHING;
 	}
+	
+	public Q convertSelection(Q filteredSelections){
+		Q dataFlowNodes = filteredSelections.nodes(XCSG.DataFlow_Node);
+		Q controlFlowNodes = filteredSelections.nodes(XCSG.ControlFlow_Node);
+		Q functions = filteredSelections.nodes(XCSG.Function);
+		
+		// convert data flow nodes to control flow nodes
+		return controlFlowNodes.union(functions, dataFlowNodes.parent());
+	}
 
 	@Override
 	public int getDefaultStepTop() {
@@ -52,30 +60,31 @@ public class ControlFlowHeatMapCodePainter extends CodePainter {
 	}
 
 	@Override
-	public UnstyledFrontierResult computeFrontierResult(IAtlasSelectionEvent event, int reverse, int forward) {
-		Q filteredSelection = filter(event.getSelection());
-
-		if(filteredSelection.eval().nodes().isEmpty()){
+	public UnstyledFrontierResult computeFrontierResult(Q filteredSelections, int reverse, int forward) {
+		if(filteredSelections.eval().nodes().isEmpty()){
 			return null;
 		}
 		
-		AtlasSet<Node> dataFlowNodes = filteredSelection.nodes(XCSG.DataFlow_Node).eval().nodes();
+		AtlasSet<Node> dataFlowNodes = filteredSelections.nodes(XCSG.DataFlow_Node).eval().nodes();
 		AtlasSet<Node> correspondingDataFlowStatements = Common.toQ(dataFlowNodes).parent().nodes(XCSG.ControlFlow_Node).eval().nodes();
-		AtlasSet<Node> functions = filteredSelection.nodes(XCSG.Function).eval().nodes();
-		Q selectedStatements = filteredSelection.difference(Common.toQ(functions), Common.toQ(dataFlowNodes)).union(Common.toQ(correspondingDataFlowStatements));
-
+		AtlasSet<Node> functions = filteredSelections.nodes(XCSG.Function).eval().nodes();
+		Q selectedStatements = filteredSelections.difference(Common.toQ(functions), Common.toQ(dataFlowNodes)).union(Common.toQ(correspondingDataFlowStatements));
+		Q containingFunctions = CommonQueries.getContainingFunctions(selectedStatements);
+		
 		if(functions.isEmpty()){
 			// just cfg nodes were selected
-			Q containingFunctions = CommonQueries.getContainingFunctions(selectedStatements);
-			Q cfgs = CommonQueries.cfg(containingFunctions);
+			Q cfgs = getCFG(containingFunctions);
 
 			heatMapColorPalette.setCanvas(cfgs.nodes(XCSG.ControlFlow_Node));
 			
-			return computeFrontierResult(selectedStatements, cfgs, reverse, forward);
+			UnstyledFrontierResult frontier = computeFrontierResult(selectedStatements, cfgs, reverse, forward);
+			
+			// a selection could include a function, so explicitly include it in the result to be highlighted
+			Q result = frontier.getResult().union(filteredSelections.nodes(XCSG.Function));
+			return new UnstyledFrontierResult(result, frontier.getFrontierReverse(), frontier.getFrontierForward());
 		} else {
 			// a function was selected possibly along with cfg nodes
-			Q containingFunctions = CommonQueries.getContainingFunctions(selectedStatements);
-			Q cfgs = CommonQueries.cfg(containingFunctions);
+			Q cfgs = getCFG(containingFunctions);
 			Q selectedFunctions = Common.toQ(functions);
 			
 			// remove any functions that are selected because callsites were selected
@@ -84,15 +93,25 @@ public class ControlFlowHeatMapCodePainter extends CodePainter {
 			selectedFunctions = selectedFunctions.difference(selectedCallsiteFunctions);
 			
 			// get the complete CFGs for any intentionally selected function
-			Q selectedFunctionCFGs = CommonQueries.cfg(selectedFunctions);
+			Q selectedFunctionCFGs = getCFG(selectedFunctions);
 			
 			// just pretend the entire cfg was selected for selected functions
 			selectedStatements = selectedStatements.union(selectedFunctionCFGs);
 			
-			heatMapColorPalette.setCanvas(cfgs.union(selectedFunctionCFGs).nodes(XCSG.ControlFlow_Node));
+			Q allCFGs = cfgs.union(selectedFunctionCFGs);
 			
-			return computeFrontierResult(selectedStatements, cfgs, reverse, forward);
+			heatMapColorPalette.setCanvas(allCFGs.nodes(XCSG.ControlFlow_Node));
+			
+			UnstyledFrontierResult frontier = computeFrontierResult(selectedStatements, allCFGs, reverse, forward);
+			
+			// a selection could include a function, so explicitly include it in the result to be highlighted
+			Q result = frontier.getResult().union(filteredSelections.nodes(XCSG.Function));
+			return new UnstyledFrontierResult(result, frontier.getFrontierReverse(), frontier.getFrontierForward());
 		}
+	}
+	
+	protected Q getCFG(Q functions){
+		return CommonQueries.cfg(functions);
 	}
 	
 	private UnstyledFrontierResult computeFrontierResult(Q origin, Q graph, int reverse, int forward){

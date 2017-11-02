@@ -20,21 +20,11 @@
             category="com.ensoftcorp.open.commons.ui.toolbox.preferences">
       </page>
    </extension>
-
-	<!-- add SIDIS smart views -->
-    <extension
-         point="com.ensoftcorp.atlas.ui.smartViewScript">
-      <script
-            class="com.kcsl.sidis.dis.ui.smart.ControlFlowHeatMapSmartView">
-      </script>
-      <script
-            class="com.kcsl.sidis.dis.ui.smart.ExceptionalControlFlowHeatMapSmartView">
-      </script>
-   </extension>
    
     <!-- adds codepainter definitions -->
    <extension point="com.ensoftcorp.open.commons.codepainter">
       <codepainter class="com.kcsl.sidis.dis.ui.codepainter.ControlFlowHeatMapCodePainter"></codepainter>
+      <codepainter class="com.kcsl.sidis.dis.ui.codepainter.ExceptionalControlFlowHeatMapCodePainter"></codepainter>
    </extension>
     
     <!-- extension for SIDIS control panel views -->
