@@ -26,6 +26,11 @@ public class ControlFlowHeatMapCodePainter extends CodePainter {
 	}
 	
 	@Override
+	public String getCategory() {
+		return "SIDIS";
+	}
+	
+	@Override
 	protected String[] getSupportedNodeTags() {
 		return new String[]{ XCSG.DataFlow_Node, XCSG.ControlFlow_Node, XCSG.Function };
 	}
