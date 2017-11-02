@@ -76,7 +76,7 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 			Q cfgs = CommonQueries.cfg(containingFunctions);
 	
 			Highlighter heatMap = HeatMapOverlay.computeHeatMap(cfgs.nodes(XCSG.ControlFlow_Node).eval().nodes());
-			return computeFrontierResult(selectedStatements, cfgs, forward, reverse, heatMap);
+			return computeFrontierResult(selectedStatements, cfgs, reverse, forward, heatMap);
 		} else {
 			// a function was selected possibly along with cfg nodes
 			Q containingFunctions = CommonQueries.getContainingFunctions(selectedStatements);
@@ -95,21 +95,21 @@ public class ControlFlowHeatMapSmartView extends FilteringAtlasSmartViewScript i
 			selectedStatements = selectedStatements.union(selectedFunctionCFGs);
 			
 			Highlighter heatMap = HeatMapOverlay.computeHeatMap(cfgs.union(selectedFunctionCFGs).nodes(XCSG.ControlFlow_Node).eval().nodes());
-			return computeFrontierResult(selectedStatements, cfgs, forward, reverse, heatMap);
+			return computeFrontierResult(selectedStatements, cfgs, reverse, forward, heatMap);
 		}
 	}
 	
-	private FrontierStyledResult computeFrontierResult(Q origin, Q graph, int forward, int reverse, Highlighter heatMap){
+	private FrontierStyledResult computeFrontierResult(Q origin, Q graph, int reverse, int forward, Highlighter heatMap){
 		// compute what to show for current steps
 		Q f = origin.forwardStepOn(graph, forward);
 		Q r = origin.reverseStepOn(graph, reverse);
 		Q result = f.union(r);
 		
 		// compute what is on the frontier
-		Q frontierForward = origin.forwardStepOn(graph, forward+1);
-		frontierForward = frontierForward.retainEdges().differenceEdges(result);
 		Q frontierReverse = origin.reverseStepOn(graph, reverse+1);
-		frontierReverse = frontierReverse.retainEdges().differenceEdges(result);
+		frontierReverse = frontierReverse.differenceEdges(result).retainEdges();
+		Q frontierForward = origin.forwardStepOn(graph, forward+1);
+		frontierForward = frontierForward.differenceEdges(result).retainEdges();
 
 		// show the result
 		return new com.ensoftcorp.atlas.core.script.FrontierStyledResult(result, frontierReverse, frontierForward, new MarkupFromH(heatMap));

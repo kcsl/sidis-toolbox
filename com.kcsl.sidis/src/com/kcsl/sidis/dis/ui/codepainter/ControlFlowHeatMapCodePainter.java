@@ -71,7 +71,7 @@ public class ControlFlowHeatMapCodePainter extends CodePainter {
 
 			heatMapColorPalette.setCanvas(cfgs.nodes(XCSG.ControlFlow_Node));
 			
-			return computeFrontierResult(selectedStatements, cfgs, forward, reverse);
+			return computeFrontierResult(selectedStatements, cfgs, reverse, forward);
 		} else {
 			// a function was selected possibly along with cfg nodes
 			Q containingFunctions = CommonQueries.getContainingFunctions(selectedStatements);
@@ -91,21 +91,21 @@ public class ControlFlowHeatMapCodePainter extends CodePainter {
 			
 			heatMapColorPalette.setCanvas(cfgs.union(selectedFunctionCFGs).nodes(XCSG.ControlFlow_Node));
 			
-			return computeFrontierResult(selectedStatements, cfgs, forward, reverse);
+			return computeFrontierResult(selectedStatements, cfgs, reverse, forward);
 		}
 	}
 	
-	private UnstyledFrontierResult computeFrontierResult(Q origin, Q graph, int forward, int reverse){
+	private UnstyledFrontierResult computeFrontierResult(Q origin, Q graph, int reverse, int forward){
 		// compute what to show for current steps
 		Q f = origin.forwardStepOn(graph, forward);
 		Q r = origin.reverseStepOn(graph, reverse);
 		Q result = f.union(r);
 		
 		// compute what is on the frontier
-		Q frontierForward = origin.forwardStepOn(graph, forward+1);
-		frontierForward = frontierForward.retainEdges().differenceEdges(result);
 		Q frontierReverse = origin.reverseStepOn(graph, reverse+1);
-		frontierReverse = frontierReverse.retainEdges().differenceEdges(result);
+		frontierReverse = frontierReverse.differenceEdges(result).retainEdges();
+		Q frontierForward = origin.forwardStepOn(graph, forward+1);
+		frontierForward = frontierForward.differenceEdges(result).retainEdges();
 		
 		// show the result
 		return new UnstyledFrontierResult(result, frontierReverse, frontierForward);
