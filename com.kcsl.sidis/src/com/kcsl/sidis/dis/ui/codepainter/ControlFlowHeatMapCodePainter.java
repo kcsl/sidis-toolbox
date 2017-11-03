@@ -40,6 +40,7 @@ public class ControlFlowHeatMapCodePainter extends CodePainter {
 		return NOTHING;
 	}
 	
+	@Override
 	public Q convertSelection(Q filteredSelections){
 		Q dataFlowNodes = filteredSelections.nodes(XCSG.DataFlow_Node);
 		Q controlFlowNodes = filteredSelections.nodes(XCSG.ControlFlow_Node);

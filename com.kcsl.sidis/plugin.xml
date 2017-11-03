@@ -21,7 +21,7 @@
       </page>
    </extension>
    
-    <!-- adds codepainter definitions -->
+   <!-- adds codepainter definitions -->
    <extension point="com.ensoftcorp.open.commons.codepainter">
       <codepainter class="com.kcsl.sidis.dis.ui.codepainter.ControlFlowHeatMapCodePainter"></codepainter>
       <codepainter class="com.kcsl.sidis.dis.ui.codepainter.ExceptionalControlFlowHeatMapCodePainter"></codepainter>
