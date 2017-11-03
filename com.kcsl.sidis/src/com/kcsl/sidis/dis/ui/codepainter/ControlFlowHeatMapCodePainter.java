@@ -81,8 +81,6 @@ public class ControlFlowHeatMapCodePainter extends CodePainter {
 			// just cfg nodes were selected
 			Q cfgs = getCFG(containingFunctions);
 
-			heatMapColorPalette.setCanvas(cfgs.nodes(XCSG.ControlFlow_Node));
-			
 			UnstyledFrontierResult frontier = computeFrontierResult(selectedStatements, cfgs, reverse, forward);
 			
 			// a selection could include a function, so explicitly include it in the result to be highlighted
@@ -105,8 +103,6 @@ public class ControlFlowHeatMapCodePainter extends CodePainter {
 			selectedStatements = selectedStatements.union(selectedFunctionCFGs);
 			
 			Q allCFGs = cfgs.union(selectedFunctionCFGs);
-			
-			heatMapColorPalette.setCanvas(allCFGs.nodes(XCSG.ControlFlow_Node));
 			
 			UnstyledFrontierResult frontier = computeFrontierResult(selectedStatements, allCFGs, reverse, forward);
 			
