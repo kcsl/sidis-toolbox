@@ -1,15 +1,26 @@
 package com.kcsl.sidis.ui.sid;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
@@ -56,6 +67,7 @@ import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.java.commons.bytecode.JarInspector;
 import com.ensoftcorp.open.java.commons.bytecode.JarModifier;
 import com.ensoftcorp.open.jimple.commons.transform.Compilation;
+import com.kcsl.sidis.Activator;
 import com.kcsl.sidis.log.Log;
 import com.kcsl.sidis.sid.instruments.Probe;
 
@@ -64,6 +76,8 @@ import soot.Transform;
 public class SIDControlPanel extends ViewPart {
 
 	public static final String ID = "com.kcsl.sidis.ui.sid.controlpanel"; //$NON-NLS-1$
+	
+	public static final String INSTRUMENTS_ZIP_PATH = "instruments/instruments.zip";
 
 	// the current Atlas selection
 	private AtlasSet<Node> selection = new AtlasHashSet<Node>();
@@ -134,9 +148,9 @@ public class SIDControlPanel extends ViewPart {
 		});
 		
 		// uncomment to preview with window builder
-		SIDExperiment testExperiment = new SIDExperiment("TEST");
-		experiments.put("TEST", testExperiment);
-		addExperiment(experimentFolder, testExperiment);
+//		SIDExperiment testExperiment = new SIDExperiment("TEST");
+//		experiments.put("TEST", testExperiment);
+//		addExperiment(experimentFolder, testExperiment);
 		
 		// create a new experiment if this is the first launch
 		if(!initialized){
@@ -532,11 +546,72 @@ public class SIDControlPanel extends ViewPart {
 		        	probeTransforms.toArray(transforms);
 		        	
 			        try {
-			        	File tmp = File.createTempFile(generatedBytecode.getName(), ".jar");
-						Compilation.compile(experiment.getProject(), experiment.getJimpleDirectory(), tmp, allowPhantomReferences, generateClassFiles, transforms);
+			        	// create a temp file to hold all the jimple code in a flat directory
+			        	File tmpJimpleDirectory = Files.createTempDirectory("jimple_").toFile();
+			        	tmpJimpleDirectory.mkdirs();
+			        	for(File jimpleFile : Compilation.findJimple(experiment.getJimpleDirectory())){
+			        		FileUtils.copyFile(jimpleFile, new File(tmpJimpleDirectory.getAbsolutePath() + File.separator + jimpleFile.getName()));
+			        	}
+			        	
+			        	// load the instrumentation classes
+			        	// see http://stackoverflow.com/q/23825933/475329 for logic of getting bundle resource
+			    		URL fileURL = Activator.getDefault().getBundle().getEntry(INSTRUMENTS_ZIP_PATH);
+			    		URL resolvedFileURL = FileLocator.toFileURL(fileURL);
+			    		// need to use the 3-arg constructor of URI in order to properly escape file system chars
+			    		URI resolvedURI = new URI(resolvedFileURL.getProtocol(), resolvedFileURL.getPath(), null);
+			    		InputStream annotationsJarInputStream = resolvedURI.toURL().openConnection().getInputStream();
+			    		if(annotationsJarInputStream == null){
+			    			throw new RuntimeException("Could not locate: " + INSTRUMENTS_ZIP_PATH);
+			    		}
+			    		File instrumentsZip = File.createTempFile("instruments", ".zip");
+			    		instrumentsZip.delete(); // just need the temp file path
+			    		Files.copy(annotationsJarInputStream, instrumentsZip.toPath());
+			    		
+			    		// extract the instruments into the jimple directory
+			    		FileInputStream fis;
+			            byte[] buffer = new byte[1024];
+			            try {
+			                fis = new FileInputStream(instrumentsZip);
+			                ZipInputStream zis = new ZipInputStream(fis);
+			                ZipEntry ze = zis.getNextEntry();
+			                while(ze != null){
+			                    String fileName = ze.getName();
+			                    File instrument = new File(tmpJimpleDirectory.getAbsolutePath() + File.separator + fileName);
+			                    File directory = new File(instrument.getParent());
+			                    directory.mkdirs();
+			                    FileOutputStream fos = new FileOutputStream(instrument);
+			                    int len;
+			                    while ((len = zis.read(buffer)) > 0) {
+			                    fos.write(buffer, 0, len);
+			                    }
+			                    fos.close();
+			                    zis.closeEntry();
+			                    ze = zis.getNextEntry();
+			                }
+			                zis.closeEntry();
+			                zis.close();
+			                fis.close();
+			            } catch (IOException ioe) {
+			                Log.warning("Unable to load instruments.");
+			            }
+			            
+			        	// create a temp file to hold the resulting jar file
+			        	File tmpOutputBytecode = File.createTempFile(generatedBytecode.getName(), ".jar");
+			        	
+			        	// generate bytecode for jimple
+						Compilation.compile(experiment.getProject(), tmpJimpleDirectory, tmpOutputBytecode, allowPhantomReferences, generateClassFiles, transforms);
+						
+						// clean up temp directory
+						try {
+							FileUtils.deleteDirectory(tmpJimpleDirectory);
+						} catch (IOException ioe){
+							// don't care if it fails, its in a temp directory anyway, OS will take care of it
+						}
+						
+						// if applicable copy the jar resources and sanitized manifest from the original bytecode
 						if(experiment.getOriginalBytecode() != null){
 							JarInspector inspector = new JarInspector(experiment.getOriginalBytecode());
-							JarModifier modifier = new JarModifier(tmp);
+							JarModifier modifier = new JarModifier(tmpOutputBytecode);
 							// copy over the original jar resources
 							for(String entry : inspector.getJarEntrySet()){
 								if(!entry.endsWith(".class")){
@@ -546,7 +621,7 @@ public class SIDControlPanel extends ViewPart {
 							}
 							modifier.save(generatedBytecode);
 						} else {
-							tmp.renameTo(generatedBytecode);
+							tmpOutputBytecode.renameTo(generatedBytecode);
 						}
 						if(saveIndexReminder){
 							saveIndexReminder = false;
