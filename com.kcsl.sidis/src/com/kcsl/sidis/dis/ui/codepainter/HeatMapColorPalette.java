@@ -8,7 +8,10 @@ import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 import com.ensoftcorp.open.commons.highlighter.HeatMap;
 import com.kcsl.sidis.dis.Import;
@@ -55,7 +58,11 @@ public class HeatMapColorPalette extends ColorPalette {
 
 	@Override
 	protected void canvasChanged() {
-		updateHeatMap(canvas.nodes());
+		// to make the coloring consistent for any selection we will compute
+		// colors for the full function of any statements on the canvas
+		Q canvasStatements = Common.toQ(canvas).nodes(XCSG.ControlFlow_Node);
+		Q fullCanvas = CommonQueries.cfg(CommonQueries.getContainingFunctions(canvasStatements));
+		updateHeatMap(fullCanvas.nodes(XCSG.ControlFlow_Node).eval().nodes());
 	}
 	
 	private void updateHeatMap(AtlasSet<Node> statements){
