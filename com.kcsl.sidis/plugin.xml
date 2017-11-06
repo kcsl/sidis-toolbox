@@ -21,10 +21,9 @@
       </page>
    </extension>
    
-   <!-- adds codepainter definitions -->
-   <extension point="com.ensoftcorp.open.commons.codepainter">
-      <codepainter class="com.kcsl.sidis.dis.ui.codepainter.ControlFlowHeatMapCodePainter"></codepainter>
-      <codepainter class="com.kcsl.sidis.dis.ui.codepainter.ExceptionalControlFlowHeatMapCodePainter"></codepainter>
+   <!-- adds color palette definitions -->
+   <extension point="com.ensoftcorp.open.commons.colorpalette">
+      <colorpalette class="com.kcsl.sidis.dis.ui.codepainter.HeatMapColorPalette"></colorpalette>
    </extension>
     
     <!-- extension for SIDIS control panel views -->
