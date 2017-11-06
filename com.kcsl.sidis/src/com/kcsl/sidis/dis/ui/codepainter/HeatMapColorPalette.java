@@ -55,7 +55,7 @@ public class HeatMapColorPalette extends ColorPalette {
 
 	@Override
 	protected void canvasChanged() {
-		updateHeatMap(canvasNodes);
+		updateHeatMap(canvas.nodes());
 	}
 	
 	private void updateHeatMap(AtlasSet<Node> statements){
