@@ -3,14 +3,11 @@ package com.kcsl.sidis.ui;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.RadioGroupFieldEditor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.ensoftcorp.open.commons.ui.components.LabelFieldEditor;
-import com.ensoftcorp.open.commons.ui.components.SpacerFieldEditor;
-
 import com.kcsl.sidis.Activator;
 import com.kcsl.sidis.preferences.SIDISPreferences;
 
@@ -20,12 +17,6 @@ import com.kcsl.sidis.preferences.SIDISPreferences;
  * @author Ben Holland
  */
 public class SIDISPreferencesPage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
-
-	private static final String MONOCHROME_COLOR_GRADIENT_DESCRIPTION = "Monochrome Color Gradient (Cold: Black, Hot: White)";
-	private static final String INVERTED_MONOCHROME_COLOR_GRADIENT_DESCRIPTION = "Inverted Monochrome Color Gradient (Cold: White, Hot: Black)";
-	private static final String BLUE_RED_COLOR_GRADIENT_DESCRIPTION = "2-Color Blue/Red Color Gradient (Cold: Blue, Hot: Red)";
-	
-	private static final String LOGARITHMIC_SCALE_HEAT_MAP_DESCRIPTION = "Logarithmic Scale Heat Map";
 	
 	private static final String GENERAL_LOGGING_DESCRIPTION = "General Logging";
 	
@@ -56,28 +47,6 @@ public class SIDISPreferencesPage extends FieldEditorPreferencePage implements I
 	@Override
 	protected void createFieldEditors() {
 		addField(new LabelFieldEditor("Dynamically-Informed Static (DIS) Analysis Options", getFieldEditorParent()));
-		RadioGroupFieldEditor heatMapColorScheme = new RadioGroupFieldEditor(
-				SIDISPreferences.PREFERRED_HEAT_MAP_COLOR_SCHEME,
-				"Control Flow Heat Map Overlay Options",
-				1,
-				new String[][] {
-					{ "&" + MONOCHROME_COLOR_GRADIENT_DESCRIPTION, 
-						SIDISPreferences.MONOCHROME_COLOR_GRADIENT
-					},
-					{ "&" + INVERTED_MONOCHROME_COLOR_GRADIENT_DESCRIPTION, 
-						SIDISPreferences.INVERTED_MONOCHROME_COLOR_GRADIENT
-					},
-					{ "&" + BLUE_RED_COLOR_GRADIENT_DESCRIPTION, 
-						SIDISPreferences.BLUE_RED_COLOR_GRADIENT
-					}
-				},
-				getFieldEditorParent(),
-				true);
-		addField(heatMapColorScheme);
-		addField(new BooleanFieldEditor(SIDISPreferences.LOGARITHMIC_SCALE_HEAT_MAP, "&" + LOGARITHMIC_SCALE_HEAT_MAP_DESCRIPTION, getFieldEditorParent()));
-		
-		addField(new SpacerFieldEditor(getFieldEditorParent()));
-		addField(new LabelFieldEditor("General Options", getFieldEditorParent()));
 		addField(new BooleanFieldEditor(SIDISPreferences.GENERAL_LOGGING, "&" + GENERAL_LOGGING_DESCRIPTION, getFieldEditorParent()));
 	}
 

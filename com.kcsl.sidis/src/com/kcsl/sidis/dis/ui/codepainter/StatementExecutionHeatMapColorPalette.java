@@ -15,10 +15,18 @@ import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codepainter.ColorPalette;
 import com.ensoftcorp.open.commons.highlighter.HeatMap;
 import com.kcsl.sidis.dis.Import;
-import com.kcsl.sidis.log.Log;
-import com.kcsl.sidis.preferences.SIDISPreferences;
 
-public class HeatMapColorPalette extends ColorPalette {
+public class StatementExecutionHeatMapColorPalette extends ColorPalette {
+	
+	public static final String NORMALIZE_LOGARITHMIC_SCALE = "Logarithmic Scale";
+	public static final String COLD_COLOR = "Cold Color";
+	public static final String HOT_COLOR = "Hot Color";
+	
+	public StatementExecutionHeatMapColorPalette(){
+		this.addPossibleFlag("Logarithmic Scale", "Normalizes the heat map intensity to a logarithmic scale", false);
+		this.addPossibleParameter(COLD_COLOR, Color.class, "Defines the lowest intensity (cold) value in the heat map color gradient.", Color.BLACK);
+		this.addPossibleParameter(HOT_COLOR, Color.class, "Defines the highest intensity (hot) value in the heat map color gradient.", Color.WHITE);
+	}
 	
 	private Map<Node, Color> nodeColors = new HashMap<Node,Color>();
 	private Map<Color, String> nodeLegend = new HashMap<Color,String>();
@@ -86,27 +94,17 @@ public class HeatMapColorPalette extends ColorPalette {
 			for(Node statement : statements){
 				double intensity = 0.0;
 				Long statementExecutionCount = getStatementExecutionCount(statement);
-				if(SIDISPreferences.isLogarithmicScaleHeatMapEnabled()){
+				if(this.isFlagSet(NORMALIZE_LOGARITHMIC_SCALE)){
 					intensity = HeatMap.normalizeLogarithmicIntensity(statementExecutionCount, lowestValue, highestValue);
 				} else {
 					intensity = HeatMap.normalizeIntensity(statementExecutionCount, lowestValue, highestValue);
 				}
 				
-				if(SIDISPreferences.isBlueRedColorGradiantEnabled()){
-					Color color = HeatMap.getBlueRedGradientHeatMapColor(intensity);
-					nodeColors.put(statement, color);
-					nodeLegend.put(color, statementExecutionCount + " (" + intensity + ")");
-				} else if(SIDISPreferences.isMonochromeColorGradiantEnabled()){
-					Color color = HeatMap.getMonochromeHeatMapColor(intensity);
-					nodeColors.put(statement, color);
-					nodeLegend.put(color, statementExecutionCount + " (" + intensity + ")");
-				} else if(SIDISPreferences.isInvertedMonochromeColorGradiantEnabled()){
-					Color color = HeatMap.getInvertedMonochromeHeatMapColor(intensity);
-					nodeColors.put(statement, color);
-					nodeLegend.put(color, statementExecutionCount + " (" + intensity + ")");
-				} else {
-					Log.warning("No preferred heat map color scheme is configured.");
-				}
+				Color cold = (Color) this.getParameterValue(COLD_COLOR);
+				Color hot = (Color) this.getParameterValue(HOT_COLOR);
+				Color color = HeatMap.get2ColorGradientHeatMapColor(intensity, cold, hot);
+				nodeColors.put(statement, color);
+				nodeLegend.put(color, statementExecutionCount + " (" + intensity + ")");
 			}
 		}
 	}

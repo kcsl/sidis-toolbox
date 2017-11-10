@@ -23,7 +23,7 @@
    
    <!-- adds color palette definitions -->
    <extension point="com.ensoftcorp.open.commons.colorpalette">
-      <colorpalette class="com.kcsl.sidis.dis.ui.codepainter.HeatMapColorPalette"></colorpalette>
+      <colorpalette class="com.kcsl.sidis.dis.ui.codepainter.StatementExecutionHeatMapColorPalette"></colorpalette>
    </extension>
     
     <!-- extension for SIDIS control panel views -->
