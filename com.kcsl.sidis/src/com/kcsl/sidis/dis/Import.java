@@ -74,11 +74,15 @@ public class Import {
 		for(Entry<String,Long> entry : statementCounts.entrySet()){
 			String address = entry.getKey();
 			String count = entry.getValue().toString();
-			Node statement = CommonQueries.getNodeByAddress(address);
-			if(statement != null){
-				statement.putAttr(STATEMENT_EXECUTION_COUNT_ATTRIBUTE_NAME, count);
-			} else {
-				Log.warning("Statement: " + address + " does not exist.");
+			try {
+				Node statement = CommonQueries.getNodeByAddress(address);
+				if(statement != null){	
+					statement.putAttr(STATEMENT_EXECUTION_COUNT_ATTRIBUTE_NAME, count);
+				} else {
+					Log.warning("Statement: " + address + " does not exist.");
+				}
+			} catch (Exception e){
+				Log.warning("Error parsing statement address: " + address);
 			}
 		}
 	}
