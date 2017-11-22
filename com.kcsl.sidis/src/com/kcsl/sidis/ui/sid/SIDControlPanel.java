@@ -42,8 +42,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.FileDialog;
@@ -52,21 +54,19 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
 
+import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
-import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.indexing.IIndexListener;
 import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
+import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
-import com.ensoftcorp.atlas.ui.selection.IAtlasSelectionListener;
-import com.ensoftcorp.atlas.ui.selection.SelectionUtil;
-import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 import com.ensoftcorp.open.commons.utilities.NodeSourceCorrespondenceSorter;
+import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionListenerView;
 import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.java.commons.bytecode.JarInspector;
 import com.ensoftcorp.open.java.commons.bytecode.JarModifier;
@@ -77,14 +77,11 @@ import com.kcsl.sidis.sid.instruments.Probe;
 
 import soot.Transform;
 
-public class SIDControlPanel extends ViewPart {
+public class SIDControlPanel extends GraphSelectionListenerView {
 
 	public static final String ID = "com.kcsl.sidis.ui.sid.controlpanel"; //$NON-NLS-1$
 	
 	public static final String INSTRUMENTS_ZIP_PATH = "instruments/instruments.zip";
-
-	// the current Atlas selection
-	private AtlasSet<Node> selection = new AtlasHashSet<Node>();
 
 	private static Map<String,SIDExperiment> experiments = new HashMap<String,SIDExperiment>();
 //	private static SIDControlPanel VIEW;
@@ -192,20 +189,7 @@ public class SIDControlPanel extends ViewPart {
 		addExperimentAction.setHoverImageDescriptor(newConfigurationIcon);
 		getViewSite().getActionBars().getToolBarManager().add(addExperimentAction);
 		
-		// setup the Atlas selection event listener
-		IAtlasSelectionListener selectionListener = new IAtlasSelectionListener(){
-			@Override
-			public void selectionChanged(IAtlasSelectionEvent atlasSelection) {
-				try {
-					selection = atlasSelection.getSelection().eval().nodes();
-				} catch (Exception e){
-					selection = new AtlasHashSet<Node>();
-				}
-			}				
-		};
-		
-		// add the selection listener
-		SelectionUtil.addSelectionListener(selectionListener);
+		registerGraphHandlers();
 	}
 	
 	private void addExperiment(final CTabFolder experimentFolder, final SIDExperiment experiment) {
@@ -542,6 +526,8 @@ public class SIDControlPanel extends ViewPart {
 		addSelectedButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				Q currentSelection = getSelection();
+				AtlasSet<Node> selection = currentSelection != null ? currentSelection.eval().nodes() : Common.empty().eval().nodes(); 
 				AtlasSet<Node> statements = selection.taggedWithAny(XCSG.ControlFlow_Node);
 				AtlasSet<Node> statementMethods = CommonQueries.getContainingMethods(Common.toQ(statements)).eval().nodes();
 				AtlasSet<Node> methods = selection.taggedWithAny(XCSG.Method);
@@ -562,6 +548,8 @@ public class SIDControlPanel extends ViewPart {
 		deleteSelectedButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				Q currentSelection = getSelection();
+				AtlasSet<Node> selection = currentSelection != null ? currentSelection.eval().nodes() : Common.empty().eval().nodes();
 				AtlasSet<Node> statements = selection.taggedWithAny(XCSG.ControlFlow_Node);
 				AtlasSet<Node> statementMethods = CommonQueries.getContainingMethods(Common.toQ(statements)).eval().nodes();
 				AtlasSet<Node> methods = selection.taggedWithAny(XCSG.Method);
@@ -721,7 +709,7 @@ public class SIDControlPanel extends ViewPart {
 		});
 		
 		// set the tab selection to this newly created tab
-		experimentFolder.setSelection(experimentFolder.getItemCount()-1);
+		experimentFolder.setSelection(experimentTab);
 	}
 	
 	private void refreshTotalProbesCount(int totalProbes, Group statementCounterProbesGroup, List bytecodeTransformationList){
@@ -832,4 +820,23 @@ public class SIDControlPanel extends ViewPart {
 		}
 		return experimentName;
 	}
+
+	@Override
+	public void selectionChanged(Graph selection) {}
+
+	@Override
+	public void indexBecameUnaccessible() {
+		// TODO: clear out old experiments and make a new experiment
+//		experiments.clear();
+
+		// add a fresh new experiment
+//		int SID_EXPERIMENT_NUMBER = (experimentCounter++);
+//		String SID_EXPERIMENT_NAME = getUniqueName("Experiment " + SID_EXPERIMENT_NUMBER);
+//		SIDExperiment experiment = new SIDExperiment(SID_EXPERIMENT_NAME);
+//		experiments.put(SID_EXPERIMENT_NAME, experiment);
+//		addExperiment(experimentFolder, experiment);
+	}
+
+	@Override
+	public void indexBecameAccessible() {}
 }
