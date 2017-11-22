@@ -152,9 +152,9 @@ public class SIDControlPanel extends ViewPart {
 		});
 		
 		// uncomment to preview with window builder
-		SIDExperiment testExperiment = new SIDExperiment("TEST");
-		experiments.put("TEST", testExperiment);
-		addExperiment(experimentFolder, testExperiment);
+//		SIDExperiment testExperiment = new SIDExperiment("TEST");
+//		experiments.put("TEST", testExperiment);
+//		addExperiment(experimentFolder, testExperiment);
 		
 		// create a new experiment if this is the first launch
 		if(!initialized){
