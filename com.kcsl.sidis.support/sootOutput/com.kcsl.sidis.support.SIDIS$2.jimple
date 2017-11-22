@@ -1,11 +1,11 @@
-class com.kcsl.sidis.support.SIDIS$1 extends java.lang.Object implements java.lang.Runnable
+class com.kcsl.sidis.support.SIDIS$2 extends java.lang.Object implements java.lang.Runnable
 {
 
     void <init>()
     {
-        com.kcsl.sidis.support.SIDIS$1 r0;
+        com.kcsl.sidis.support.SIDIS$2 r0;
 
-        r0 := @this: com.kcsl.sidis.support.SIDIS$1;
+        r0 := @this: com.kcsl.sidis.support.SIDIS$2;
 
         specialinvoke r0.<java.lang.Object: void <init>()>();
 
@@ -14,7 +14,7 @@ class com.kcsl.sidis.support.SIDIS$1 extends java.lang.Object implements java.la
 
     public void run()
     {
-        com.kcsl.sidis.support.SIDIS$1 r0;
+        com.kcsl.sidis.support.SIDIS$2 r0;
         java.util.Map$Entry r1;
         java.util.Iterator r2;
         java.io.FileWriter $r3;
@@ -28,18 +28,18 @@ class com.kcsl.sidis.support.SIDIS$1 extends java.lang.Object implements java.la
         java.io.IOException $r17;
         java.io.PrintStream $r18;
 
-        r0 := @this: com.kcsl.sidis.support.SIDIS$1;
+        r0 := @this: com.kcsl.sidis.support.SIDIS$2;
 
      label1:
         $r3 = new java.io.FileWriter;
 
         $r4 = new java.io.File;
 
-        specialinvoke $r4.<java.io.File: void <init>(java.lang.String)>("sidis.loop-times.dat");
+        specialinvoke $r4.<java.io.File: void <init>(java.lang.String)>("sidis.ec.dat");
 
         specialinvoke $r3.<java.io.FileWriter: void <init>(java.io.File)>($r4);
 
-        $r5 = staticinvoke <com.kcsl.sidis.support.SIDIS: java.util.Map access$0()>();
+        $r5 = staticinvoke <com.kcsl.sidis.support.SIDIS: java.util.Map access$1()>();
 
         $r6 = interfaceinvoke $r5.<java.util.Map: java.util.Set entrySet()>();
 

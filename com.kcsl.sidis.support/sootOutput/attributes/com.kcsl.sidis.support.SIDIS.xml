@@ -4,11 +4,17 @@
 <srcPos sline="0" eline="0" spos="0" epos="0"/>
 <jmpPos sline="0" eline="0" spos="0" epos="0"/>
 <text info="[inner=com/kcsl/sidis/support/SIDIS$1, outer=null, name=null,flags=0]" aType="InnerClassTag"/>
-<text info="soot.tagkit.InnerClassAttribute@7612d818" aType="InnerClassAttribute"/>
+<text info="[inner=com/kcsl/sidis/support/SIDIS$2, outer=null, name=null,flags=0]" aType="InnerClassTag"/>
+<text info="soot.tagkit.InnerClassAttribute@69c29324" aType="InnerClassAttribute"/>
 </attribute>
 <attribute>
 <srcPos sline="0" eline="0" spos="0" epos="0"/>
 <jmpPos sline="3" eline="3" spos="0" epos="0"/>
-<text info="Signature: Ljava/util/HashMap&lt;Ljava/lang/String;Ljava/lang/Long;&gt;;" aType="SignatureTag"/>
+<text info="Signature: Ljava/util/Map&lt;Ljava/lang/String;Ljava/util/List&lt;Ljava/util/List&lt;Ljava/lang/Long;&gt;;&gt;;&gt;;" aType="SignatureTag"/>
+</attribute>
+<attribute>
+<srcPos sline="0" eline="0" spos="0" epos="0"/>
+<jmpPos sline="4" eline="4" spos="0" epos="0"/>
+<text info="Signature: Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/Long;&gt;;" aType="SignatureTag"/>
 </attribute>
 </attributes>

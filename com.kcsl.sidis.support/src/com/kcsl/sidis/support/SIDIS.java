@@ -6,14 +6,54 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 public class SIDIS {
 
-	private static HashMap<String,Long> counts = new HashMap<String,Long>();
+	private static Map<String,List<List<Long>>> loopIterationTimes = new HashMap<String,List<List<Long>>>();
+	
+	public static void tick(String address){
+		if(!initialized){
+			initialized = true;
+			Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
+				@Override
+				public void run() {
+					try {
+						FileWriter fw = new FileWriter(new File("sidis.loop-times.dat"));
+						for(Entry<String,List<List<Long>>> entry : loopIterationTimes.entrySet()){
+							fw.write(entry.getKey() + ":" + entry.getValue() + "\n");
+						}
+						fw.flush();
+						fw.close();
+					} catch (IOException e){
+						System.err.println(e);
+					}
+				}
+			}));
+		}
+		
+		List<List<Long>> instances = loopIterationTimes.get(address);
+		if(instances == null){
+			instances = new LinkedList<List<Long>>();
+			List<Long> instance = new LinkedList<Long>();
+			instances.add(instance);
+			loopIterationTimes.put(address, instances);
+		}
+		List<Long> instance = instances.get(instances.size()-1);
+		instance.add(System.nanoTime());
+	}
+	
+	public static void terminate(String address){
+		List<List<Long>> instances = loopIterationTimes.get(address);
+		instances.add(new LinkedList<Long>());
+	}
+	
+	private static Map<String,Long> counts = new HashMap<String,Long>();
 	private static boolean initialized = false;
-	private static PrintStream out = getPrintStream();
+	private static PrintStream out = null;
 	
 	public static void count(String address){
 		if(!initialized){
@@ -89,6 +129,9 @@ public class SIDIS {
 	}
 
 	public static void println(String value){
+		if(out == null){
+			out = getPrintStream();;
+		}
 		out.println(value);
 		out.flush();
 	}
