@@ -29,6 +29,8 @@ import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.ExpandAdapter;
+import org.eclipse.swt.events.ExpandEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -42,6 +44,8 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.ExpandBar;
+import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -148,9 +152,9 @@ public class SIDControlPanel extends ViewPart {
 		});
 		
 		// uncomment to preview with window builder
-//		SIDExperiment testExperiment = new SIDExperiment("TEST");
-//		experiments.put("TEST", testExperiment);
-//		addExperiment(experimentFolder, testExperiment);
+		SIDExperiment testExperiment = new SIDExperiment("TEST");
+		experiments.put("TEST", testExperiment);
+		addExperiment(experimentFolder, testExperiment);
 		
 		// create a new experiment if this is the first launch
 		if(!initialized){
@@ -212,8 +216,15 @@ public class SIDControlPanel extends ViewPart {
 		experimentTab.setControl(experimentComposite);
 		experimentComposite.setLayout(new GridLayout(1, false));
 		
-		Composite experimentControlPanelComposite = new Composite(experimentComposite, SWT.NONE);
-		experimentControlPanelComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		ExpandBar compilerConfigurationsExpandBar = new ExpandBar(experimentComposite, SWT.NONE);
+		compilerConfigurationsExpandBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+
+		ExpandItem compilerConfigurationsExpandItem = new ExpandItem(compilerConfigurationsExpandBar, SWT.NONE);
+		compilerConfigurationsExpandItem.setExpanded(true);
+		compilerConfigurationsExpandItem.setText("Compiler Configurations");
+		
+		Composite experimentControlPanelComposite = new Composite(compilerConfigurationsExpandBar, SWT.NONE);
+		compilerConfigurationsExpandItem.setControl(experimentControlPanelComposite);
 		experimentControlPanelComposite.setLayout(new GridLayout(2, false));
 		
 		Label experimentNameLabel = new Label(experimentControlPanelComposite, SWT.NONE);
@@ -251,11 +262,6 @@ public class SIDControlPanel extends ViewPart {
 		Combo workspaceProjectCombo = new Combo(workspaceComposite, SWT.NONE);
 		workspaceProjectCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		workspaceProjectCombo.removeAll();
-		LinkedList<IProject> projects = getWorkspaceProjects();
-		for(IProject project : projects){
-			workspaceProjectCombo.add(project.getName());
-			workspaceProjectCombo.setData(project.getName(), project);
-		}
 		
 		Label jimpleDirectoryLabel = new Label(experimentControlPanelComposite, SWT.NONE);
 		jimpleDirectoryLabel.setText("Jimple Directory: ");
@@ -270,6 +276,19 @@ public class SIDControlPanel extends ViewPart {
 		Label jimpleDirectoryPathLabel = new Label(jimpleDirectoryComposite, SWT.NONE);
 		jimpleDirectoryPathLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
+		Label libraryDirectoryLabel = new Label(experimentControlPanelComposite, SWT.NONE);
+		libraryDirectoryLabel.setText("Library Directory: ");
+		
+		Composite libraryDirectoryComposite = new Composite(experimentControlPanelComposite, SWT.NONE);
+		libraryDirectoryComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		libraryDirectoryComposite.setLayout(new GridLayout(2, false));
+		
+		Button browseLibraryDirectoryButton = new Button(libraryDirectoryComposite, SWT.NONE);
+		browseLibraryDirectoryButton.setText("Browse...");
+		
+		Label libraryDirectoryPathLabel = new Label(libraryDirectoryComposite, SWT.NONE);
+		libraryDirectoryPathLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
 		Label originalBytecodeLabel = new Label(experimentControlPanelComposite, SWT.NONE);
 		originalBytecodeLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		originalBytecodeLabel.setText("Original Bytecode: ");
@@ -283,9 +302,33 @@ public class SIDControlPanel extends ViewPart {
 		
 		Label originalBytecodePathLabel = new Label(orginalBytecodeComposite, SWT.NONE);
 		originalBytecodePathLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+									
+		compilerConfigurationsExpandItem.setHeight(compilerConfigurationsExpandItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		
+		compilerConfigurationsExpandBar.addExpandListener(new ExpandAdapter() {
+			
+			private static final int EXPAND_BAR_SIZE = 32;
+			
+			@Override
+			public void itemExpanded(ExpandEvent e) {
+				compilerConfigurationsExpandBar.setSize(compilerConfigurationsExpandBar.getSize().x, compilerConfigurationsExpandItem.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT).y + EXPAND_BAR_SIZE);
+				compilerConfigurationsExpandBar.requestLayout();
+			}
+			@Override
+			public void itemCollapsed(ExpandEvent e) {
+				compilerConfigurationsExpandBar.setSize(compilerConfigurationsExpandBar.getSize().x, EXPAND_BAR_SIZE);
+				compilerConfigurationsExpandBar.requestLayout();
+			}
+		});
+		
+		LinkedList<IProject> projects = getWorkspaceProjects();
+		for(IProject project : projects){
+			workspaceProjectCombo.add(project.getName());
+			workspaceProjectCombo.setData(project.getName(), project);
+		}
 		
 		Label label = new Label(experimentComposite, SWT.SEPARATOR | SWT.HORIZONTAL);
-		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		label.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		
 		SashForm sashForm = new SashForm(experimentComposite, SWT.NONE);
 		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -364,15 +407,9 @@ public class SIDControlPanel extends ViewPart {
 		
 		Button generateBytecodeButton = new Button(appliedTransformationsControlsComposite, SWT.NONE);
 		generateBytecodeButton.setEnabled(false);
-		generateBytecodeButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
+		generateBytecodeButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		generateBytecodeButton.setText("Generate Bytecode");
 		sashForm.setWeights(new int[] {600, 301});
-		
-		// set the default project, if there is only one
-		if(workspaceProjectCombo.getItemCount() == 1){
-			workspaceProjectCombo.select(0);
-			setExperimentProject(experiment, projects.getFirst(), jimpleDirectoryPathLabel, generateBytecodeButton);
-		}
 		
 		browseJimpleDirectoryButton.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -389,6 +426,28 @@ public class SIDControlPanel extends ViewPart {
 		        if(path != null){
 		        	File jimpleDirectory = new File(path);
 			        experiment.setJimpleDirectory(jimpleDirectory);
+			        jimpleDirectoryPathLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
+					jimpleDirectoryPathLabel.setText(path);
+		        }
+		        validateGenerateBytecodeButton(experiment, generateBytecodeButton);
+			}
+		});
+		
+		browseLibraryDirectoryButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				DirectoryDialog dd = new DirectoryDialog(Display.getCurrent().getActiveShell(), SWT.OPEN);
+		        dd.setText("Open Library Directory");
+		        if(experiment.getProject() != null){
+		        	dd.setFilterPath(experiment.getProject().getLocation().toFile().getAbsolutePath());
+		        } else {
+		        	// just set it to user home directory
+		        	dd.setFilterPath(System.getProperty("user.home"));
+		        }
+		        String path = dd.open();
+		        if(path != null){
+		        	File libraryDirectory = new File(path);
+			        experiment.setLibraryDirectory(libraryDirectory);
 			        jimpleDirectoryPathLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
 					jimpleDirectoryPathLabel.setText(path);
 		        }
@@ -426,6 +485,12 @@ public class SIDControlPanel extends ViewPart {
 		        }
 			}
 		});
+		
+		// set the default project, if there is only one
+		if(workspaceProjectCombo.getItemCount() == 1){
+			workspaceProjectCombo.select(0);
+			setExperimentProject(experiment, projects.getFirst(), jimpleDirectoryPathLabel, generateBytecodeButton);
+		}
 		
 		methodsList.addMouseListener(new MouseAdapter() {
 			@Override
@@ -599,7 +664,11 @@ public class SIDControlPanel extends ViewPart {
 			        	File tmpOutputBytecode = File.createTempFile(generatedBytecode.getName(), ".jar");
 			        	
 			        	// generate bytecode for jimple
-						Compilation.compile(experiment.getProject(), tmpJimpleDirectory, tmpOutputBytecode, allowPhantomReferences, generateClassFiles, transforms);
+			        	LinkedList<File> libraries = new LinkedList<File>();
+			        	if(experiment.getLibraryDirectory() != null){
+			        		libraries.add(experiment.getLibraryDirectory());
+			        	}
+						Compilation.compile(experiment.getProject(), tmpJimpleDirectory, tmpOutputBytecode, allowPhantomReferences, libraries, generateClassFiles, transforms);
 						
 						// clean up temp directory
 						try {

@@ -12,6 +12,7 @@ public class SIDExperiment implements Comparable<SIDExperiment> {
 	
 	private IProject project = null;
 	private File jimpleDirectory = null;
+	private File libraryDirectory = null;
 	private File originalBytecode = null;
 	
 
@@ -40,9 +41,17 @@ public class SIDExperiment implements Comparable<SIDExperiment> {
 	public File getJimpleDirectory() {
 		return jimpleDirectory;
 	}
-
+	
 	public void setJimpleDirectory(File jimpleDirectory) {
 		this.jimpleDirectory = jimpleDirectory;
+	}
+	
+	public File getLibraryDirectory() {
+		return libraryDirectory;
+	}
+	
+	public void setLibraryDirectory(File libraryDirectory) {
+		this.libraryDirectory = libraryDirectory;
 	}
 
 	public File getOriginalBytecode() {
@@ -89,5 +98,4 @@ public class SIDExperiment implements Comparable<SIDExperiment> {
 			return false;
 		return true;
 	}
-	
 }
