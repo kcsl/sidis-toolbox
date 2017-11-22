@@ -448,8 +448,8 @@ public class SIDControlPanel extends ViewPart {
 		        if(path != null){
 		        	File libraryDirectory = new File(path);
 			        experiment.setLibraryDirectory(libraryDirectory);
-			        jimpleDirectoryPathLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
-					jimpleDirectoryPathLabel.setText(path);
+			        libraryDirectoryPathLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
+					libraryDirectoryPathLabel.setText(path);
 		        }
 		        validateGenerateBytecodeButton(experiment, generateBytecodeButton);
 			}
