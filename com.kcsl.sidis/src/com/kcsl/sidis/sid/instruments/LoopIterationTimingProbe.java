@@ -9,9 +9,9 @@ import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
-import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 import com.ensoftcorp.open.jimple.commons.loops.BoundaryConditions;
+import com.ensoftcorp.open.jimple.commons.loops.DecompiledLoopIdentification.CFGNode;
 import com.ensoftcorp.open.jimple.commons.transform.transforms.MethodCFGTransform;
 
 import soot.Body;
@@ -68,13 +68,7 @@ public class LoopIterationTimingProbe extends MethodCFGTransform implements Prob
 				insertTickBeforeLoopHeaderStatement(statements, loopHeaderStatement, loopHeader.address().toAddressString());
 
 				Q boundaryConditions = Common.toQ(cfgNodes).nodes(BoundaryConditions.BOUNDARY_CONDITION);
-	
-				// broken???
-//				Q loopChildren = Common.universe().edges(XCSG.LoopChild).successors(Common.toQ(loopHeader));
-
-				// alternative to XCSG.LoopChild
-				Q loopChildren = Common.toQ(cfgNodes).selectNode("LOOP_MEMBER_ID", loopHeader.getAttr("LOOP_HEADER_ID"));
-	
+				Q loopChildren = Common.universe().edges(XCSG.LoopChild).successors(Common.toQ(loopHeader));
 				Q terminators = Common.universe().edges(XCSG.ControlFlow_Edge).successors(boundaryConditions).difference(loopChildren);
 
 				for(Node terminator : terminators.eval().nodes()){
