@@ -17,7 +17,8 @@ Require-Bundle: org.eclipse.ui,
  ca.mcgill.sable.soot.lib;bundle-version="2.5.2",
  com.ensoftcorp.open.commons;bundle-version="3.3.0",
  com.ensoftcorp.open.java.commons;bundle-version="3.3.0",
- com.ensoftcorp.open.jimple.commons;bundle-version="3.3.0"
+ com.ensoftcorp.open.jimple.commons;bundle-version="3.3.0",
+ com.ensoftcorp.atlas.core
 Export-Package: com.kcsl.sidis.dis,
  com.kcsl.sidis.preferences,
  com.kcsl.sidis.sid
