@@ -73,6 +73,7 @@ import com.ensoftcorp.open.java.commons.bytecode.JarModifier;
 import com.ensoftcorp.open.jimple.commons.transform.Compilation;
 import com.kcsl.sidis.Activator;
 import com.kcsl.sidis.log.Log;
+import com.kcsl.sidis.sid.Instrumenter;
 import com.kcsl.sidis.sid.instruments.Probe;
 
 import soot.Transform;
@@ -80,8 +81,6 @@ import soot.Transform;
 public class SIDControlPanel extends GraphSelectionListenerView {
 
 	public static final String ID = "com.kcsl.sidis.ui.sid.controlpanel"; //$NON-NLS-1$
-	
-	public static final String INSTRUMENTS_ZIP_PATH = "instruments/instruments.zip";
 
 	private static Map<String,SIDExperiment> experiments = new HashMap<String,SIDExperiment>();
 //	private static SIDControlPanel VIEW;
@@ -591,95 +590,10 @@ public class SIDControlPanel extends GraphSelectionListenerView {
 		        	
 		        	boolean allowPhantomReferences = true;
 		        	boolean generateClassFiles = !debugCheckbox.getSelection();
-		        	ArrayList<Transform> probeTransforms = new ArrayList<Transform>();
-		        	for(Probe probe : experiment.getStatementCounterProbeRequest().getProbes()){
-		        		probeTransforms.add(probe.getTransform());
-		        	}
-		        	final Transform[] transforms = new Transform[probeTransforms.size()];
-		        	probeTransforms.toArray(transforms);
-		        	
+
 			        try {
-			        	// create a temp file to hold all the jimple code in a flat directory
-			        	File tmpJimpleDirectory = Files.createTempDirectory("jimple_").toFile();
-			        	tmpJimpleDirectory.mkdirs();
-			        	for(File jimpleFile : Compilation.findJimple(experiment.getJimpleDirectory())){
-			        		FileUtils.copyFile(jimpleFile, new File(tmpJimpleDirectory.getAbsolutePath() + File.separator + jimpleFile.getName()));
-			        	}
+			        	Instrumenter.instrument(experiment.getProject(), experiment.getJimpleDirectory(), experiment.getLibraryDirectory(), experiment.getOriginalBytecode(), experiment.getStatementCounterProbeRequest().getProbes(), allowPhantomReferences, generateClassFiles, generatedBytecode);
 			        	
-			        	// load the instrumentation classes
-			        	// see http://stackoverflow.com/q/23825933/475329 for logic of getting bundle resource
-			    		URL fileURL = Activator.getDefault().getBundle().getEntry(INSTRUMENTS_ZIP_PATH);
-			    		URL resolvedFileURL = FileLocator.toFileURL(fileURL);
-			    		// need to use the 3-arg constructor of URI in order to properly escape file system chars
-			    		URI resolvedURI = new URI(resolvedFileURL.getProtocol(), resolvedFileURL.getPath(), null);
-			    		InputStream annotationsJarInputStream = resolvedURI.toURL().openConnection().getInputStream();
-			    		if(annotationsJarInputStream == null){
-			    			throw new RuntimeException("Could not locate: " + INSTRUMENTS_ZIP_PATH);
-			    		}
-			    		File instrumentsZip = File.createTempFile("instruments", ".zip");
-			    		instrumentsZip.delete(); // just need the temp file path
-			    		Files.copy(annotationsJarInputStream, instrumentsZip.toPath());
-			    		
-			    		// extract the instruments into the jimple directory
-			    		FileInputStream fis;
-			            byte[] buffer = new byte[1024];
-			            try {
-			                fis = new FileInputStream(instrumentsZip);
-			                ZipInputStream zis = new ZipInputStream(fis);
-			                ZipEntry ze = zis.getNextEntry();
-			                while(ze != null){
-			                    String fileName = ze.getName();
-			                    File instrument = new File(tmpJimpleDirectory.getAbsolutePath() + File.separator + fileName);
-			                    File directory = new File(instrument.getParent());
-			                    directory.mkdirs();
-			                    FileOutputStream fos = new FileOutputStream(instrument);
-			                    int len;
-			                    while ((len = zis.read(buffer)) > 0) {
-			                    fos.write(buffer, 0, len);
-			                    }
-			                    fos.close();
-			                    zis.closeEntry();
-			                    ze = zis.getNextEntry();
-			                }
-			                zis.closeEntry();
-			                zis.close();
-			                fis.close();
-			            } catch (IOException ioe) {
-			                Log.warning("Unable to load instruments.", ioe);
-			            }
-			            
-			        	// create a temp file to hold the resulting jar file
-			        	File tmpOutputBytecode = File.createTempFile(generatedBytecode.getName(), ".jar");
-			        	
-			        	// generate bytecode for jimple
-			        	LinkedList<File> libraries = new LinkedList<File>();
-			        	if(experiment.getLibraryDirectory() != null){
-			        		libraries.add(experiment.getLibraryDirectory());
-			        	}
-						Compilation.compile(experiment.getProject(), tmpJimpleDirectory, tmpOutputBytecode, allowPhantomReferences, libraries, generateClassFiles, transforms);
-						
-						// clean up temp directory
-						try {
-							FileUtils.deleteDirectory(tmpJimpleDirectory);
-						} catch (IOException ioe){
-							// don't care if it fails, its in a temp directory anyway, OS will take care of it
-						}
-						
-						// if applicable copy the jar resources and sanitized manifest from the original bytecode
-						if(experiment.getOriginalBytecode() != null){
-							JarInspector inspector = new JarInspector(experiment.getOriginalBytecode());
-							JarModifier modifier = new JarModifier(tmpOutputBytecode);
-							// copy over the original jar resources
-							for(String entry : inspector.getJarEntrySet()){
-								if(!entry.endsWith(".class")){
-									byte[] bytes = inspector.extractEntry(entry);
-									modifier.add(entry, bytes, true);
-								}
-							}
-							modifier.save(generatedBytecode);
-						} else {
-							tmpOutputBytecode.renameTo(generatedBytecode);
-						}
 //						if(saveIndexReminder){
 //							saveIndexReminder = false;
 //							if(DisplayUtils.promptBoolean("Save Codemap", "This generated bytecode contains instrumentation that is tied to your current Atlas codemap. Would you like to save your code map now?")){

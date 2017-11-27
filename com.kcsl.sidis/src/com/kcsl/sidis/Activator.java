@@ -10,6 +10,8 @@ public class Activator extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "com.kcsl.sidis"; //$NON-NLS-1$
+	
+	public static final String INSTRUMENTS_ZIP_PATH = "instruments/instruments.zip";
 
 	// The shared instance
 	private static Activator plugin;
