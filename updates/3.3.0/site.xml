@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/com.kcsl.sidis.feature_3.3.0.201711291345.jar" id="com.kcsl.sidis.feature" version="3.3.0.201711291345">
+      <category name="com.kcsl.sidis.category"/>
+   </feature>
+   <category-def name="com.kcsl.sidis.category" label="SIDIS Toolbox">
+      <description>
+         The SIDIS Toolbox project provides statically-informed dynamic (SID) analysis and dynamically-informed static (DIS) analysis capabilities to the Atlas program analysis framework.
+      </description>
+   </category-def>
+</site>
