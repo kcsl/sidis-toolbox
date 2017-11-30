@@ -1,26 +1,15 @@
 package com.kcsl.sidis.ui.sid;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
-import org.apache.commons.io.FileUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
@@ -42,10 +31,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.FileDialog;
@@ -59,8 +46,6 @@ import org.eclipse.wb.swt.ResourceManager;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
-import com.ensoftcorp.atlas.core.indexing.IIndexListener;
-import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
@@ -68,15 +53,9 @@ import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 import com.ensoftcorp.open.commons.utilities.NodeSourceCorrespondenceSorter;
 import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionListenerView;
 import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
-import com.ensoftcorp.open.java.commons.bytecode.JarInspector;
-import com.ensoftcorp.open.java.commons.bytecode.JarModifier;
 import com.ensoftcorp.open.jimple.commons.transform.Compilation;
-import com.kcsl.sidis.Activator;
 import com.kcsl.sidis.log.Log;
 import com.kcsl.sidis.sid.Instrumenter;
-import com.kcsl.sidis.sid.instruments.Probe;
-
-import soot.Transform;
 
 public class SIDControlPanel extends GraphSelectionListenerView {
 
@@ -87,6 +66,8 @@ public class SIDControlPanel extends GraphSelectionListenerView {
 	
 	private static boolean initialized = false;
 	private static int experimentCounter = 1;
+	
+	@SuppressWarnings("unused")
 	private static boolean saveIndexReminder = true;
 	
 	private CTabFolder experimentFolder;
@@ -103,27 +84,6 @@ public class SIDControlPanel extends GraphSelectionListenerView {
 	@Override
 	public void createPartControl(Composite parent) {
 		parent.setLayout(new GridLayout(1, false));
-		
-		IndexingUtil.addListener(new IIndexListener(){
-			@Override
-			public void indexOperationCancelled(IndexOperation op) {}
-
-			@Override
-			public void indexOperationComplete(IndexOperation op) {
-				saveIndexReminder = true;
-			}
-
-			@Override
-			public void indexOperationError(IndexOperation op, Throwable error) {}
-
-			@Override
-			public void indexOperationScheduled(IndexOperation op) {}
-
-			@Override
-			public void indexOperationStarted(IndexOperation op) {
-				saveIndexReminder = true;
-			}
-		});
 		
 		experimentFolder = new CTabFolder(parent, SWT.CLOSE);
 		experimentFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -752,5 +712,7 @@ public class SIDControlPanel extends GraphSelectionListenerView {
 	}
 
 	@Override
-	public void indexBecameAccessible() {}
+	public void indexBecameAccessible() {
+		saveIndexReminder = true;
+	}
 }
