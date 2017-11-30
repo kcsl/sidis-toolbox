@@ -48,7 +48,11 @@ public class SIDIS {
 	
 	public static void terminate(String address){
 		List<List<Long>> instances = loopIterationTimes.get(address);
-		instances.add(new LinkedList<Long>());
+		if(instances != null){
+			// if its null the loop path was not taken before
+			// terminator was executed no big deal, just move on
+			instances.add(new LinkedList<Long>());
+		}
 	}
 	
 	private static Map<String,Long> counts = new HashMap<String,Long>();

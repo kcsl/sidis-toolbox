@@ -133,12 +133,15 @@ public class com.kcsl.sidis.support.SIDIS extends java.lang.Object
 
         r1 = (java.util.List) $r3;
 
+        if r1 == null goto label1;
+
         $r4 = new java.util.LinkedList;
 
         specialinvoke $r4.<java.util.LinkedList: void <init>()>();
 
         interfaceinvoke r1.<java.util.List: boolean add(java.lang.Object)>($r4);
 
+     label1:
         return;
     }
 

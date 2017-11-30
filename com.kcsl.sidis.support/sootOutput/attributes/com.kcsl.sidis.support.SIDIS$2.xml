@@ -6,6 +6,6 @@
 <text info="Enclosing Class: com/kcsl/sidis/support/SIDIS Enclosing Method: count Sig: (Ljava/lang/String;)V" aType="EnclosingMethodTag"/>
 <text info="[inner=com/kcsl/sidis/support/SIDIS$2, outer=null, name=null,flags=0]" aType="InnerClassTag"/>
 <text info="[inner=java/util/Map$Entry, outer=java/util/Map, name=Entry,flags=1545]" aType="InnerClassTag"/>
-<text info="soot.tagkit.InnerClassAttribute@1f914f43" aType="InnerClassAttribute"/>
+<text info="soot.tagkit.InnerClassAttribute@52184e96" aType="InnerClassAttribute"/>
 </attribute>
 </attributes>
