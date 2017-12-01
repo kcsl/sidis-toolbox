@@ -10,7 +10,7 @@ import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.jimple.commons.loops.BoundaryConditions;
-import com.ensoftcorp.open.jimple.commons.transform.transforms.MethodCFGTransform;
+import com.ensoftcorp.open.jimple.commons.soot.transforms.MethodCFGTransform;
 
 import soot.Body;
 import soot.Scene;

@@ -22,7 +22,7 @@ import org.eclipse.core.runtime.FileLocator;
 
 import com.ensoftcorp.open.java.commons.bytecode.JarInspector;
 import com.ensoftcorp.open.java.commons.bytecode.JarModifier;
-import com.ensoftcorp.open.jimple.commons.transform.Compilation;
+import com.ensoftcorp.open.jimple.commons.soot.Compilation;
 import com.kcsl.sidis.Activator;
 import com.kcsl.sidis.log.Log;
 import com.kcsl.sidis.sid.instruments.Probe;
@@ -52,48 +52,50 @@ public class Instrumenter {
     		FileUtils.copyFile(jimpleFile, new File(tmpJimpleDirectory.getAbsolutePath() + File.separator + jimpleFile.getName()));
     	}
     	
-    	// load the instrumentation classes
-    	// see http://stackoverflow.com/q/23825933/475329 for logic of getting bundle resource
-		URL fileURL = Activator.getDefault().getBundle().getEntry(Activator.INSTRUMENTS_ZIP_PATH);
-		URL resolvedFileURL = FileLocator.toFileURL(fileURL);
-		// need to use the 3-arg constructor of URI in order to properly escape file system chars
-		URI resolvedURI = new URI(resolvedFileURL.getProtocol(), resolvedFileURL.getPath(), null);
-		InputStream annotationsJarInputStream = resolvedURI.toURL().openConnection().getInputStream();
-		if(annotationsJarInputStream == null){
-			throw new RuntimeException("Could not locate: " + Activator.INSTRUMENTS_ZIP_PATH);
-		}
-		File instrumentsZip = File.createTempFile("instruments", ".zip");
-		instrumentsZip.delete(); // just need the temp file path
-		Files.copy(annotationsJarInputStream, instrumentsZip.toPath());
-		
-		// extract the instruments into the jimple directory
-		FileInputStream fis;
-        byte[] buffer = new byte[1024];
-        try {
-            fis = new FileInputStream(instrumentsZip);
-            ZipInputStream zis = new ZipInputStream(fis);
-            ZipEntry ze = zis.getNextEntry();
-            while(ze != null){
-                String fileName = ze.getName();
-                File instrument = new File(tmpJimpleDirectory.getAbsolutePath() + File.separator + fileName);
-                File directory = new File(instrument.getParent());
-                directory.mkdirs();
-                FileOutputStream fos = new FileOutputStream(instrument);
-                int len;
-                while ((len = zis.read(buffer)) > 0) {
-                fos.write(buffer, 0, len);
+    	if(!probes.isEmpty()){
+    		// load the instrumentation classes
+        	// see http://stackoverflow.com/q/23825933/475329 for logic of getting bundle resource
+    		URL fileURL = Activator.getDefault().getBundle().getEntry(Activator.INSTRUMENTS_ZIP_PATH);
+    		URL resolvedFileURL = FileLocator.toFileURL(fileURL);
+    		// need to use the 3-arg constructor of URI in order to properly escape file system chars
+    		URI resolvedURI = new URI(resolvedFileURL.getProtocol(), resolvedFileURL.getPath(), null);
+    		InputStream annotationsJarInputStream = resolvedURI.toURL().openConnection().getInputStream();
+    		if(annotationsJarInputStream == null){
+    			throw new RuntimeException("Could not locate: " + Activator.INSTRUMENTS_ZIP_PATH);
+    		}
+    		File instrumentsZip = File.createTempFile("instruments", ".zip");
+    		instrumentsZip.delete(); // just need the temp file path
+    		Files.copy(annotationsJarInputStream, instrumentsZip.toPath());
+    		
+    		// extract the instruments into the jimple directory
+    		FileInputStream fis;
+            byte[] buffer = new byte[1024];
+            try {
+                fis = new FileInputStream(instrumentsZip);
+                ZipInputStream zis = new ZipInputStream(fis);
+                ZipEntry ze = zis.getNextEntry();
+                while(ze != null){
+                    String fileName = ze.getName();
+                    File instrument = new File(tmpJimpleDirectory.getAbsolutePath() + File.separator + fileName);
+                    File directory = new File(instrument.getParent());
+                    directory.mkdirs();
+                    FileOutputStream fos = new FileOutputStream(instrument);
+                    int len;
+                    while ((len = zis.read(buffer)) > 0) {
+                    fos.write(buffer, 0, len);
+                    }
+                    fos.close();
+                    zis.closeEntry();
+                    ze = zis.getNextEntry();
                 }
-                fos.close();
                 zis.closeEntry();
-                ze = zis.getNextEntry();
+                zis.close();
+                fis.close();
+            } catch (IOException ioe) {
+                Log.warning("Unable to load instruments.", ioe);
             }
-            zis.closeEntry();
-            zis.close();
-            fis.close();
-        } catch (IOException ioe) {
-            Log.warning("Unable to load instruments.", ioe);
-        }
-        
+    	}
+    	
     	// create a temp file to hold the resulting jar file
     	File tmpOutputBytecode = File.createTempFile(output.getName(), ".jar");
     	

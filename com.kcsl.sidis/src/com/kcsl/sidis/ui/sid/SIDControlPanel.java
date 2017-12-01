@@ -53,7 +53,7 @@ import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 import com.ensoftcorp.open.commons.utilities.NodeSourceCorrespondenceSorter;
 import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionListenerView;
 import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
-import com.ensoftcorp.open.jimple.commons.transform.Compilation;
+import com.ensoftcorp.open.jimple.commons.soot.Compilation;
 import com.kcsl.sidis.log.Log;
 import com.kcsl.sidis.sid.Instrumenter;
 
@@ -631,10 +631,12 @@ public class SIDControlPanel extends GraphSelectionListenerView {
 			generateBytecodeButton.setEnabled(false);
 			return;
 		}
-		if(experiment.getStatementCounterProbeRequest().getTotalStatementProbeRequests() == 0){
-			generateBytecodeButton.setEnabled(false);
-			return;
-		}
+		
+		// allow empty probe sets
+//		if(experiment.getStatementCounterProbeRequest().getTotalStatementProbeRequests() == 0){
+//			generateBytecodeButton.setEnabled(false);
+//			return;
+//		}
 		
 		generateBytecodeButton.setEnabled(true);
 	}
