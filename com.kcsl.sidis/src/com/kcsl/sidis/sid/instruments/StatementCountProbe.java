@@ -6,6 +6,7 @@ import java.util.Map;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.open.commons.utilities.address.NormalizedAddress;
 import com.ensoftcorp.open.jimple.commons.soot.transforms.MethodCFGTransform;
 
 import soot.Body;
@@ -48,7 +49,11 @@ public class StatementCountProbe extends MethodCFGTransform implements Probe {
 			Unit statement = methodBodyUnitsIterator.next();
 			Node atlasNode = atlasControlFlowNodeCorrespondence.get(statement);
 			if(atlasNode != null && selectedStatements.contains(atlasNode) && !restrictedRegion.contains(atlasNode)){
-				insertPrintBeforeStatement(statements, statement, atlasNode.address().toAddressString());
+				String address = atlasNode.address().toAddressString();
+				if(atlasNode.hasAttr(NormalizedAddress.NORMALIZED_ADDRESS_ATTRIBUTE)){
+					address = "n_" + atlasNode.getAttr(NormalizedAddress.NORMALIZED_ADDRESS_ATTRIBUTE).toString();
+				}
+				insertPrintBeforeStatement(statements, statement, address);
 			}
 		}
 	}

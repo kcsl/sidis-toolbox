@@ -54,7 +54,6 @@ import com.ensoftcorp.open.commons.utilities.NodeSourceCorrespondenceSorter;
 import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionListenerView;
 import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.jimple.commons.soot.Compilation;
-import com.kcsl.sidis.log.Log;
 import com.kcsl.sidis.sid.Instrumenter;
 
 public class SIDControlPanel extends GraphSelectionListenerView {
@@ -552,7 +551,7 @@ public class SIDControlPanel extends GraphSelectionListenerView {
 		        	boolean generateClassFiles = !debugCheckbox.getSelection();
 
 			        try {
-			        	Instrumenter.instrument(experiment.getProject(), experiment.getJimpleDirectory(), experiment.getLibraryDirectory(), experiment.getOriginalBytecode(), experiment.getStatementCounterProbeRequest().getProbes(), allowPhantomReferences, generateClassFiles, generatedBytecode);
+			        	Instrumenter.instrument(experiment.getOriginalBytecode(), generatedBytecode, experiment.getLibraryDirectory(), allowPhantomReferences, generateClassFiles, experiment.getStatementCounterProbeRequest().getProbes());
 			        	
 //						if(saveIndexReminder){
 //							saveIndexReminder = false;
@@ -574,9 +573,7 @@ public class SIDControlPanel extends GraphSelectionListenerView {
 //							}
 //						}
 					} catch (Throwable t) {
-						String message = "Error compiling transformed bytecode.";
-						Log.error(message, t);
-						DisplayUtils.showError(t, message);
+						DisplayUtils.showError(t, "Error transforming bytecode.");
 					}
 		        }
 			}
