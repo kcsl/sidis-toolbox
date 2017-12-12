@@ -70,9 +70,11 @@ public class LoopIterationTimingProbe extends MethodCFGTransform implements Prob
 				Q terminators = Common.universe().edges(XCSG.ControlFlow_Edge).successors(boundaryConditions).difference(loopChildren);
 
 				for(Node terminator : terminators.eval().nodes()){
-					Unit sootTerminatorStatement = sootStatementCorrespondence.get(terminator);
-					if(sootTerminatorStatement != null && !restrictedRegion.contains(terminator)){
-						insertTerminateBeforeTerminatorStatement(statements, sootTerminatorStatement, loopHeader.address().toAddressString());
+					if(!restrictedRegion.contains(terminator)){
+						Unit sootTerminatorStatement = sootStatementCorrespondence.get(terminator);
+						if(sootTerminatorStatement != null && !restrictedRegion.contains(terminator)){
+							insertTerminateBeforeTerminatorStatement(statements, sootTerminatorStatement, loopHeader.address().toAddressString());
+						}
 					}
 				}
 			}
