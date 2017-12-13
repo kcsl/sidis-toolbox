@@ -12,6 +12,7 @@ import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
+import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 import com.ensoftcorp.open.commons.utilities.address.NormalizedAddress;
 import com.kcsl.sidis.log.Log;
 
@@ -78,7 +79,7 @@ public class Import {
 			try {
 				Node statement;
 				if(address.startsWith("n_")){
-					statement = Common.universe().selectNode(NormalizedAddress.NORMALIZED_ADDRESS_ATTRIBUTE + address.replace("n_", "")).eval().nodes().one();
+					statement = Common.universe().selectNode(NormalizedAddress.NORMALIZED_ADDRESS_ATTRIBUTE, address.replace("n_", "")).eval().nodes().one();
 				} else {
 					statement = CommonQueries.getNodeByAddress(address);
 				}
@@ -91,6 +92,7 @@ public class Import {
 				Log.warning("Error parsing statement address: " + address);
 			}
 		}
+		DisplayUtils.showMessage("Import finished.");
 	}
 
 	private static void purgeStatementExecutionCounts(boolean clearPreviousData) {
