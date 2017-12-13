@@ -12,6 +12,7 @@ import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
+import com.ensoftcorp.open.commons.utilities.address.NormalizedAddress;
 import com.kcsl.sidis.log.Log;
 
 public class Import {
@@ -75,7 +76,12 @@ public class Import {
 			String address = entry.getKey();
 			String count = entry.getValue().toString();
 			try {
-				Node statement = CommonQueries.getNodeByAddress(address);
+				Node statement;
+				if(address.startsWith("n_")){
+					statement = Common.universe().selectNode(NormalizedAddress.NORMALIZED_ADDRESS_ATTRIBUTE + address.replace("n_", "")).eval().nodes().one();
+				} else {
+					statement = CommonQueries.getNodeByAddress(address);
+				}
 				if(statement != null){	
 					statement.putAttr(STATEMENT_EXECUTION_COUNT_ATTRIBUTE_NAME, count);
 				} else {
