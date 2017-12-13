@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,10 +13,57 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class SIDIS {
-
-	private static Map<String,List<List<Long>>> loopIterationTimes = new HashMap<String,List<List<Long>>>();
 	
-	public static void tick(String address){
+	private static boolean initialized = false;
+	private static PrintStream out = null;
+	
+	private static String predecessor = null;
+	private static Map<String,Long> pathCounts = Collections.synchronizedMap(new HashMap<String,Long>());
+	
+	public static synchronized void pathStartEndCount(String address){
+		pathEndCount(address); // this is the successor to a previous predecessor
+		pathStartCount(address); // this is also the predecessor to another successor
+	}
+	
+	public static synchronized void pathStartCount(String address){
+		if(!initialized){
+			initialized = true;
+			Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
+				@Override
+				public void run() {
+					try {
+						FileWriter fw = new FileWriter(new File("sidis.pc.dat"));
+						for(Entry<String,Long> entry : pathCounts.entrySet()){
+							fw.write(entry.getKey() + ":" + entry.getValue() + "\n");
+						}
+						fw.flush();
+						fw.close();
+					} catch (IOException e){
+						System.err.println(e);
+					}
+				}
+			}));
+		}
+		predecessor = address;
+	}
+
+	public static synchronized void pathEndCount(String address){
+		String successor = address;
+		String edge = predecessor + "-" + successor;
+		if(predecessor != null){
+			Long count = pathCounts.remove(edge);
+			if(count == null){
+				count = 1L;
+			} else {
+				count++;
+			}
+			pathCounts.put(edge, count);
+		}
+	}
+
+	private static Map<String,List<List<Long>>> loopIterationTimes = Collections.synchronizedMap(new HashMap<String,List<List<Long>>>());
+	
+	public static synchronized void tick(String address){
 		if(!initialized){
 			initialized = true;
 			Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
@@ -46,7 +94,7 @@ public class SIDIS {
 		instance.add(System.nanoTime());
 	}
 	
-	public static void terminate(String address){
+	public static synchronized void terminate(String address){
 		List<List<Long>> instances = loopIterationTimes.get(address);
 		if(instances != null){
 			// if its null the loop path was not taken before
@@ -55,11 +103,9 @@ public class SIDIS {
 		}
 	}
 	
-	private static Map<String,Long> counts = new HashMap<String,Long>();
-	private static boolean initialized = false;
-	private static PrintStream out = null;
+	private static Map<String,Long> counts = Collections.synchronizedMap(new HashMap<String,Long>());
 	
-	public static void count(String address){
+	public static synchronized void count(String address){
 		if(!initialized){
 			initialized = true;
 			Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
@@ -87,7 +133,7 @@ public class SIDIS {
 		counts.put(address, count);
 	}
 	
-	public static void printCardinality(String address, Object o){
+	public static synchronized void printCardinality(String address, Object o){
 		if(o != null){
 			if(o instanceof Collection){
 				@SuppressWarnings("rawtypes")
@@ -132,7 +178,7 @@ public class SIDIS {
 		}
 	}
 
-	public static void println(String value){
+	public static synchronized void println(String value){
 		if(out == null){
 			out = getPrintStream();;
 		}
