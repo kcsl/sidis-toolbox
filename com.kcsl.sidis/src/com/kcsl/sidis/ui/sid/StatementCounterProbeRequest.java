@@ -93,7 +93,7 @@ public class StatementCounterProbeRequest implements TransformationRequest {
 			if(!statements.contains(requestedStatement)){
 				statementsToSave.add(requestedStatement);
 			} else {
-				totalStatementProbeRequests--;;
+				totalStatementProbeRequests--;
 			}
 		}
 		if(!statementsToSave.isEmpty()){

@@ -34,7 +34,7 @@ public class LoopIterationTimingProbe extends MethodCFGTransform implements Prob
 
 	@Override
 	public ProbeDataType[] captures() {
-		return new ProbeDataType[]{ ProbeDataType.EXECUTION_COUNTS };
+		return new ProbeDataType[]{ ProbeDataType.EXECUTION_COUNTS, ProbeDataType.TIMING };
 	}
 	
 	private AtlasSet<Node> selectedLoopHeaders;
