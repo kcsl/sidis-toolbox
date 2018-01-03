@@ -65,6 +65,15 @@ public class StatementExecutionHeatMapColorPalette extends ColorPalette {
 	}
 
 	@Override
+	public void clearCanvas(){
+		nodeColors.clear();
+		nodeLegend.clear();
+		edgeColors.clear();
+		edgeLedgend.clear();
+		super.clearCanvas();
+	}
+	
+	@Override
 	protected void canvasChanged() {
 		// to make the coloring consistent for any selection we will compute
 		// colors for the full function of any statements on the canvas
