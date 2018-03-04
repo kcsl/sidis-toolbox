@@ -18,7 +18,9 @@ Require-Bundle: org.eclipse.ui,
  com.ensoftcorp.open.commons;bundle-version="3.3.0",
  com.ensoftcorp.open.java.commons;bundle-version="3.3.0",
  com.ensoftcorp.open.jimple.commons;bundle-version="3.3.0",
- com.ensoftcorp.atlas.core
+ com.ensoftcorp.atlas.core,
+ com.ensoftcorp.open.pcg,
+ com.ensoftcorp.open.slice
 Export-Package: com.kcsl.sidis.dis,
  com.kcsl.sidis.preferences,
  com.kcsl.sidis.sid
