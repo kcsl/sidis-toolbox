@@ -20,6 +20,28 @@ public class SIDIS {
 	private static String predecessor = null;
 	private static Map<String,Long> pathCounts = Collections.synchronizedMap(new HashMap<String,Long>());
 	
+	private static boolean abortHooks = false;
+	
+	public static synchronized void irrelevant(){
+		
+		throw new Error("sidis-irrelevant");
+		
+//		// TODO: signal to Daikon this execution should not be analyzed
+//		
+//		// don't save any probe information
+//		abortHooks = true;
+//		
+//		System.exit(0); // exit gracefully, we don't want to count this as a crash (just as not interesting)
+	}
+	
+	public static synchronized void endRelevance(){
+		
+		throw new Error("sidis-end-relevance");
+		
+//		// save the probes this was on a relevant path
+//		System.exit(0); // exit gracefully, we don't want to count this as a crash (just no longer interesting)
+	}
+	
 	public static synchronized void pathStartEndCount(String address){
 		pathEndCount(address); // this is the successor to a previous predecessor
 		pathStartCount(address); // this is also the predecessor to another successor
@@ -32,12 +54,14 @@ public class SIDIS {
 				@Override
 				public void run() {
 					try {
-						FileWriter fw = new FileWriter(new File("sidis.pc.dat"));
-						for(Entry<String,Long> entry : pathCounts.entrySet()){
-							fw.write(entry.getKey() + ":" + entry.getValue() + "\n");
+						if(!abortHooks) {
+							FileWriter fw = new FileWriter(new File("sidis.pc.dat"));
+							for(Entry<String,Long> entry : pathCounts.entrySet()){
+								fw.write(entry.getKey() + ":" + entry.getValue() + "\n");
+							}
+							fw.flush();
+							fw.close();
 						}
-						fw.flush();
-						fw.close();
 					} catch (IOException e){
 						System.err.println(e);
 					}
@@ -70,12 +94,14 @@ public class SIDIS {
 				@Override
 				public void run() {
 					try {
-						FileWriter fw = new FileWriter(new File("sidis.loop-times.dat"));
-						for(Entry<String,List<List<Long>>> entry : loopIterationTimes.entrySet()){
-							fw.write(entry.getKey() + ":" + entry.getValue() + "\n");
+						if(!abortHooks) {
+							FileWriter fw = new FileWriter(new File("sidis.loop-times.dat"));
+							for(Entry<String,List<List<Long>>> entry : loopIterationTimes.entrySet()){
+								fw.write(entry.getKey() + ":" + entry.getValue() + "\n");
+							}
+							fw.flush();
+							fw.close();
 						}
-						fw.flush();
-						fw.close();
 					} catch (IOException e){
 						System.err.println(e);
 					}
@@ -112,12 +138,20 @@ public class SIDIS {
 				@Override
 				public void run() {
 					try {
-						FileWriter fw = new FileWriter(new File("sidis.ec.dat"));
-						for(Entry<String,Long> entry : counts.entrySet()){
-							fw.write(entry.getKey() + ":" + entry.getValue() + "\n");
+						if(!abortHooks) {
+							int version = 1;
+							File output = new File("sidis.ec." + version + ".dat");
+							while(output.exists()) {
+								version++;
+								output = new File("sidis.ec." + version + ".dat");
+							}
+							FileWriter fw = new FileWriter(output);
+							for(Entry<String,Long> entry : counts.entrySet()){
+								fw.write(entry.getKey() + ":" + entry.getValue() + "\n");
+							}
+							fw.flush();
+							fw.close();
 						}
-						fw.flush();
-						fw.close();
 					} catch (IOException e){
 						System.err.println(e);
 					}
