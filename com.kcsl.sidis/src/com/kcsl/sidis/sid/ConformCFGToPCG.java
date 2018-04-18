@@ -45,6 +45,7 @@ public class ConformCFGToPCG extends MethodCFGTransform {
 		Chain<Unit> statements = methodBody.getUnits();
 		Iterator<Unit> methodBodyUnitsIterator = statements.snapshotIterator();
 		
+		@SuppressWarnings("unused")
 		AtlasSet<Node> sliceStatements = pdg.getGraph().reverse(Common.toQ(eventStatements)).eval().nodes();
 		
 		AtlasSet<Edge> irrelevantPaths = pcg.getPCG().difference(pcg.getEvents()).reverseStep(Common.toQ(pcg.getMasterExit())).eval().edges();

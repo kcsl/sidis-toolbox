@@ -4,6 +4,7 @@ import java.io.File;
 
 import soot.Transform;
 
+@SuppressWarnings("unused")
 public class SIDExperiment implements Comparable<SIDExperiment> {
 
 	private String name;
