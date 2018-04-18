@@ -25,3 +25,4 @@ Export-Package: com.kcsl.sidis.dis,
  com.kcsl.sidis.preferences,
  com.kcsl.sidis.sid
 Bundle-Activator: com.kcsl.sidis.Activator
+Automatic-Module-Name: com.kcsl.sidis

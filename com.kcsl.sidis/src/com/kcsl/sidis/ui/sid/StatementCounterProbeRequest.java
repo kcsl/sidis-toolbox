@@ -10,8 +10,8 @@ import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
-import com.kcsl.sidis.sid.instruments.StatementCountProbe;
 import com.kcsl.sidis.sid.instruments.Probe;
+import com.kcsl.sidis.sid.instruments.StatementCountProbe;
 
 public class StatementCounterProbeRequest implements TransformationRequest {
 

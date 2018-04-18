@@ -8,6 +8,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -20,8 +22,6 @@ import org.eclipse.wb.swt.ResourceManager;
 
 import com.ensoftcorp.open.commons.utilities.DisplayUtils;
 import com.kcsl.sidis.dis.Import;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 
 public class DISControlPanel extends ViewPart {
 

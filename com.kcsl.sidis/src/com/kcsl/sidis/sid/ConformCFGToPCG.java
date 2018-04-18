@@ -11,7 +11,6 @@ import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
-import com.ensoftcorp.open.commons.utilities.address.NormalizedAddress;
 import com.ensoftcorp.open.jimple.commons.soot.transforms.MethodCFGTransform;
 import com.ensoftcorp.open.pcg.common.PCG;
 import com.ensoftcorp.open.pcg.common.PCGFactory;
@@ -22,7 +21,6 @@ import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.Jimple;
-import soot.jimple.StringConstant;
 import soot.util.Chain;
 
 public class ConformCFGToPCG extends MethodCFGTransform {
