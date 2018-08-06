@@ -104,7 +104,6 @@ public class ConformCFGToPCG extends MethodCFGTransform {
 		}
 		
 		// elide execution of irrelevant statements with labels and gotos
-		Map<Node,Node> elidedStatementMap = new HashMap<Node,Node>();
 		AtlasSet<Node> relevantStatements = pdg.getGraph().reverse(Common.toQ(eventStatements)).eval().nodes();
 		AtlasSet<Node> irrelevantStatements = Common.toQ(cfg).retainNodes().difference(Common.toQ(relevantStatements)).eval().nodes();
 		
@@ -133,6 +132,7 @@ public class ConformCFGToPCG extends MethodCFGTransform {
 		// debug
 //		DisplayUtils.show(irrelevantBlocks, "irrelevant blocks");
 		
+		Map<Node,Node> elidedStatementMap = new HashMap<Node,Node>();
 		for(Node irrelevantBlockRoot : irrelevantBlocks.roots().eval().nodes()) {
 			Q irrelevantBlock = irrelevantBlocks.forward(Common.toQ(irrelevantBlockRoot));
 			AtlasSet<Node> irrelevantBlockLeaves = irrelevantBlock.leaves().eval().nodes();
@@ -144,22 +144,38 @@ public class ConformCFGToPCG extends MethodCFGTransform {
 			}
 		}
 		
-		// TODO: add goto/label pairs for eliding irrelevant statements
+		// create the inverse mapping of atlas correspondence map
+		Map<Node, Unit> sootControlFlowNodeCorrespondence = new HashMap<Node,Unit>();
+		for(Map.Entry<Unit, Node> entry : atlasControlFlowNodeCorrespondence.entrySet()){
+			if(!sootControlFlowNodeCorrespondence.containsKey(entry.getValue())) {
+				sootControlFlowNodeCorrespondence.put(entry.getValue(), entry.getKey());
+			} else {
+				throw new RuntimeException("Key is not unique");
+			}
+		}
+
+		// perform code transformation
 		while(methodBodyUnitsIterator.hasNext()){
 			Unit statement = methodBodyUnitsIterator.next();
 			Node atlasNode = atlasControlFlowNodeCorrespondence.get(statement);
 			if(atlasNode != null && !restrictedRegion.contains(atlasNode)){
+				// mark irrelevance
 				if(irrelevantPathSuccessors.contains(atlasNode)) {
 					markIrrelevant(statements, statement);
 				} else if(endRelevanceNodes.contains(atlasNode)) {
 					markEndRelevance(statements, statement);
+				}
+				// insert goto/label pairs to elide irrelevant statements
+				if(elidedStatementMap.containsKey(atlasNode)) {
+					Node targetStatementNode = elidedStatementMap.get(atlasNode);
+					Unit targetSootStatement = sootControlFlowNodeCorrespondence.get(targetStatementNode);
+					statements.insertBefore(Jimple.v().newGotoStmt(targetSootStatement), statement);
 				}
 			}
 		}
 	}
 	
 	// really this should do some analysis to be safe for inter-procedural calls
-	// right now it just shuts down the vm
 	// for inter-procedural calls we could jump we could just return if the slice of the reachable return does not include
 	// statements after the events and there are no other inter-procedural side effects
 	private void markEndRelevance(Chain<Unit> statements, Unit statement) {
