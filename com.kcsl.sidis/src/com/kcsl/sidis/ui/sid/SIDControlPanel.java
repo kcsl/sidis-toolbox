@@ -548,10 +548,13 @@ public class SIDControlPanel extends GraphSelectionListenerView {
 		        	}
 		        	
 		        	boolean allowPhantomReferences = true;
+		        	boolean useOriginalNames = false;
 		        	boolean generateClassFiles = !debugCheckbox.getSelection();
 
 			        try {
-			        	Instrumenter.instrument(experiment.getOriginalBytecode(), generatedBytecode, experiment.getLibraryDirectory(), allowPhantomReferences, generateClassFiles, experiment.getStatementCounterProbeRequest().getProbes());
+			        	ArrayList<File> libraries = new ArrayList<File>();
+			        	libraries.add(experiment.getLibraryDirectory());
+			        	Instrumenter.instrument(experiment.getOriginalBytecode(), generatedBytecode, libraries, allowPhantomReferences, useOriginalNames, generateClassFiles, experiment.getStatementCounterProbeRequest().getProbes());
 			        	
 						if(saveIndexReminder){
 							saveIndexReminder = false;

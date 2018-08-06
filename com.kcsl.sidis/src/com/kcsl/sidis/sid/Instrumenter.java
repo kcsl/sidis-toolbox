@@ -31,8 +31,24 @@ import soot.Transform;
 
 public class Instrumenter {
 
-	public static void instrument(File jar, File outputJar, File libraryDirectory, boolean allowPhantomReferences, boolean generateClassFiles, Set<Probe> probes) throws IOException, CoreException, URISyntaxException, SootConversionException {
-
+	public static void instrument(File jar, File outputJar, List<File> libraries, boolean allowPhantomReferences, boolean useOriginalNames, boolean outputBytecode, Set<Probe> probes) throws IOException, CoreException, URISyntaxException, SootConversionException {
+		// convert probes to transforms
+    	ArrayList<Transform> probeTransforms = new ArrayList<Transform>();
+    	for(Probe probe : probes){
+    		probeTransforms.add(probe.getTransform());
+    	}
+    	final Transform[] transforms = new Transform[probeTransforms.size()];
+    	probeTransforms.toArray(transforms);
+    	instrument(jar, outputJar, libraries, allowPhantomReferences, useOriginalNames, outputBytecode, transforms);
+	}
+	
+	/*
+	 * To execute on toy example, run the following shell commands...
+	 * var method = methods("main")
+	 * var eventStatements = method.contained.nodes(XCSG.Division).containers().nodes(XCSG.ControlFlow_Node).eval.nodes
+	 * com.kcsl.sidis.sid.ConformCFGToPCG.testTransform(com.ensoftcorp.open.commons.utilities.WorkspaceUtils.getProject("ToyExample_jimple"), method.eval.nodes.one, eventStatements, new java.io.File("C:\\Users\\Ben\\Desktop\\toy-mod.jar"))
+	 */
+	public static void instrument(File jar, File outputJar, List<File> libraries, boolean allowPhantomReferences, boolean useOriginalNames, boolean outputBytecode, Transform[] transforms) throws IOException, CoreException, URISyntaxException, SootConversionException {
 		File supportJar = null;
 		File supportedJar = null;
 		File instrumentedBytecodeJar = null;
@@ -42,15 +58,6 @@ public class Instrumenter {
 	    	if(outputJar.exists()){
 	    		outputJar.delete();
 	    	}
-	    	
-	    	// convert probes to transforms
-	    	ArrayList<Transform> probeTransforms = new ArrayList<Transform>();
-	    	for(Probe probe : probes){
-	    		probeTransforms.add(probe.getTransform());
-	    	}
-	    	final Transform[] transforms = new Transform[probeTransforms.size()];
-	    	probeTransforms.toArray(transforms);
-	    	
 	    	// add probe instrumentation support classes
 			// load the instrumentation classes
 	    	// see http://stackoverflow.com/q/23825933/475329 for logic of getting bundle resource
@@ -86,23 +93,15 @@ public class Instrumenter {
 			}
 			
 			// convert classpath entries to files
-			List<File> libraries = new ArrayList<File>();
 			for(IClasspathEntry entry : classpathEntries){
 				libraries.add(new File(entry.getPath().toFile().getCanonicalPath()));
 			}
-	    	
-	    	// add any additional library dependencies
-	    	if(libraryDirectory != null){
-	    		libraries.add(libraryDirectory);
-	    	}
 	    	
 	    	// create a temp file to hold the resulting jar file
 	    	instrumentedBytecodeJar = File.createTempFile(outputJar.getName(), ".jar");
 	    	instrumentedBytecodeJar.delete(); // just want the file handle
 	    	
 	    	// transform the supported jar
-	    	boolean useOriginalNames = false;
-			boolean outputBytecode = true;
 	    	Transformation.transform(supportedJar, instrumentedBytecodeJar, libraries, allowPhantomReferences, useOriginalNames, outputBytecode, transforms);
 
 			// copy the jar resources and sanitized manifest from the original bytecode

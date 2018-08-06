@@ -1,30 +1,66 @@
 package com.kcsl.sidis.sid;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+
+import org.eclipse.core.resources.IProject;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
+import com.ensoftcorp.open.java.commons.project.ProjectJarProperties;
+import com.ensoftcorp.open.java.commons.project.ProjectJarProperties.Jar;
+import com.ensoftcorp.open.jimple.commons.project.ProjectJarJimpleProperties;
 import com.ensoftcorp.open.jimple.commons.soot.transforms.MethodCFGTransform;
 import com.ensoftcorp.open.pcg.common.PCG;
 import com.ensoftcorp.open.pcg.common.PCGFactory;
 import com.ensoftcorp.open.slice.analysis.ProgramDependenceGraph;
+import com.kcsl.sidis.log.Log;
 
 import soot.Body;
 import soot.Scene;
 import soot.SootMethod;
+import soot.Transform;
 import soot.Unit;
 import soot.jimple.Jimple;
 import soot.util.Chain;
 
 public class ConformCFGToPCG extends MethodCFGTransform {
 
+	public static void testTransform(IProject project, Node method, AtlasSet<Node> eventStatements, File output) throws Exception {
+		String task = "Conforming method " +  method.getAttr(XCSG.name) + " in " + project.getName();
+		Log.info(task);
+		
+		for(Jar app : ProjectJarProperties.getApplicationJars(project)) {
+			try {
+				boolean allowPhantomReferences = ProjectJarJimpleProperties.getJarJimplePhantomReferencesConfiguration(app);
+				boolean useOriginalNames = ProjectJarJimpleProperties.getJarJimpleUseOriginalNamesConfiguration(app);
+				List<File> libraries = new ArrayList<File>();
+				for(Jar lib : ProjectJarProperties.getLibraryJars(project)) {
+					libraries.add(lib.getFile());
+				}
+				boolean outputBytecode = true;
+				Transform transform = new ConformCFGToPCG(method, eventStatements).getTransform();
+				
+				Instrumenter.instrument(app.getFile(), output, libraries, allowPhantomReferences, useOriginalNames, outputBytecode, new Transform[] {transform});
+				
+				Log.info("Transformation complete (" + output.getAbsolutePath() + ").");
+			} catch (Throwable t) {
+				Log.error("Fail to perfrom Soot transformation", t);
+			}
+		}
+	}
+	
 	private AtlasSet<Node> eventStatements;
 	private Graph cfg;
 	private Graph dfg;
@@ -44,10 +80,7 @@ public class ConformCFGToPCG extends MethodCFGTransform {
 	protected void transform(Body methodBody, Map<Unit,Node> atlasControlFlowNodeCorrespondence) {
 		Chain<Unit> statements = methodBody.getUnits();
 		Iterator<Unit> methodBodyUnitsIterator = statements.snapshotIterator();
-		
-		@SuppressWarnings("unused")
-		AtlasSet<Node> sliceStatements = pdg.getGraph().reverse(Common.toQ(eventStatements)).eval().nodes();
-		
+
 		AtlasSet<Edge> irrelevantPaths = pcg.getPCG().difference(pcg.getEvents()).reverseStep(Common.toQ(pcg.getMasterExit())).eval().edges();
 		AtlasSet<Node> irrelevantPathSuccessors = new AtlasHashSet<Node>();
 		for(Edge irrelevantPath : irrelevantPaths) {
@@ -70,6 +103,48 @@ public class ConformCFGToPCG extends MethodCFGTransform {
 			}
 		}
 		
+		// elide execution of irrelevant statements with labels and gotos
+		Map<Node,Node> elidedStatementMap = new HashMap<Node,Node>();
+		AtlasSet<Node> relevantStatements = pdg.getGraph().reverse(Common.toQ(eventStatements)).eval().nodes();
+		AtlasSet<Node> irrelevantStatements = Common.toQ(cfg).retainNodes().difference(Common.toQ(relevantStatements)).eval().nodes();
+		
+		PCG pcgSlice = PCGFactory.create(Common.toQ(relevantStatements));
+		
+		AtlasSet<Node> abortedStatements = new AtlasHashSet<Node>();
+		Q incomingPCGSliceMasterExistEdges = pcgSlice.getPCG().reverseStep(Common.toQ(pcgSlice.getMasterExit()));
+		for(Edge incomingPCGSliceMasterExistEdge : incomingPCGSliceMasterExistEdges.eval().edges()) {
+			Node from = incomingPCGSliceMasterExistEdge.from();
+			if(incomingPCGSliceMasterExistEdge.hasAttr(XCSG.conditionValue)) {
+				Object conditionValue = incomingPCGSliceMasterExistEdge.getAttr(XCSG.conditionValue);
+				Q conditionValueEdges = Common.toQ(cfg).selectEdge(XCSG.conditionValue, conditionValue, conditionValue.toString()).retainEdges();
+				Q successor = conditionValueEdges.successors(Common.toQ(from));
+				abortedStatements.addAll(Common.toQ(cfg).forward(successor).eval().nodes());
+			} else {
+				abortedStatements.addAll(Common.toQ(cfg).forward(Common.toQ(from)).difference(Common.toQ(from)).eval().nodes());
+			}
+		}
+		
+		Q parameterAssignments = CommonQueries.nodesContaining(Common.toQ(cfg), ":= @parameter");
+		Q irrelevantBlocks = Common.toQ(irrelevantStatements).induce(Common.toQ(cfg)).difference(Common.toQ(abortedStatements), parameterAssignments);
+		
+		// debug
+//		DisplayUtils.show(Common.toQ(abortedStatements).induce(Common.toQ(cfg)), "aborted statements");
+		
+		// debug
+//		DisplayUtils.show(irrelevantBlocks, "irrelevant blocks");
+		
+		for(Node irrelevantBlockRoot : irrelevantBlocks.roots().eval().nodes()) {
+			Q irrelevantBlock = irrelevantBlocks.forward(Common.toQ(irrelevantBlockRoot));
+			AtlasSet<Node> irrelevantBlockLeaves = irrelevantBlock.leaves().eval().nodes();
+			if(irrelevantBlockLeaves.size() != 1) {
+				throw new RuntimeException("Expected a single irrelevant block leaf");
+			} else {
+				Node irrelevantBlockLeaf = irrelevantBlockLeaves.one();
+				elidedStatementMap.put(irrelevantBlockRoot, irrelevantBlockLeaf);
+			}
+		}
+		
+		// TODO: add goto/label pairs for eliding irrelevant statements
 		while(methodBodyUnitsIterator.hasNext()){
 			Unit statement = methodBodyUnitsIterator.next();
 			Node atlasNode = atlasControlFlowNodeCorrespondence.get(statement);
