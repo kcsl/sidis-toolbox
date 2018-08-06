@@ -87,9 +87,10 @@ public class ConformCFGToPCG extends MethodCFGTransform {
 			// ASSERT: from is always an implicit condition since we have removed events
 			Node implicitCondition = irrelevantPath.from();
 			// get the successor statement of the implicit condition that matches the edge transition (ex: true/false)
+			Object conditionValue = irrelevantPath.getAttr(XCSG.conditionValue);
 			Node pathSuccessor = Common.toQ(cfg)
 					.forwardStep(Common.toQ(implicitCondition))
-					.selectEdge(XCSG.conditionValue, irrelevantPath.getAttr(XCSG.conditionValue))
+					.selectEdge(XCSG.conditionValue, conditionValue, conditionValue.toString())
 					.eval().edges().one().to();
 			irrelevantPathSuccessors.add(pathSuccessor);
 		}
