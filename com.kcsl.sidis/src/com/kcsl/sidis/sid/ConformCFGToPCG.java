@@ -2,7 +2,6 @@ package com.kcsl.sidis.sid;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +32,7 @@ import soot.SootMethod;
 import soot.Transform;
 import soot.Unit;
 import soot.jimple.Jimple;
+import soot.jimple.NullConstant;
 import soot.util.Chain;
 
 public class ConformCFGToPCG extends MethodCFGTransform {
@@ -126,35 +126,14 @@ public class ConformCFGToPCG extends MethodCFGTransform {
 		
 		Q parameterAssignments = CommonQueries.nodesContaining(Common.toQ(cfg), ":= @parameter");
 		Q irrelevantBlocks = Common.toQ(irrelevantStatements).induce(Common.toQ(cfg)).difference(Common.toQ(abortedStatements), parameterAssignments);
+		AtlasSet<Node> statementsToElide = irrelevantBlocks.eval().nodes();
 		
-		// debug
+//		// debug
 //		DisplayUtils.show(Common.toQ(abortedStatements).induce(Common.toQ(cfg)), "aborted statements");
-		
-		// debug
+//		
+//		// debug
 //		DisplayUtils.show(irrelevantBlocks, "irrelevant blocks");
 		
-		Map<Node,Node> elidedStatementMap = new HashMap<Node,Node>();
-		for(Node irrelevantBlockRoot : irrelevantBlocks.roots().eval().nodes()) {
-			Q irrelevantBlock = irrelevantBlocks.forward(Common.toQ(irrelevantBlockRoot));
-			AtlasSet<Node> irrelevantBlockLeaves = irrelevantBlock.leaves().eval().nodes();
-			if(irrelevantBlockLeaves.size() != 1) {
-				throw new RuntimeException("Expected a single irrelevant block leaf");
-			} else {
-				Node irrelevantBlockLeaf = irrelevantBlockLeaves.one();
-				elidedStatementMap.put(irrelevantBlockRoot, irrelevantBlockLeaf);
-			}
-		}
-		
-		// create the inverse mapping of atlas correspondence map
-		Map<Node, Unit> sootControlFlowNodeCorrespondence = new HashMap<Node,Unit>();
-		for(Map.Entry<Unit, Node> entry : atlasControlFlowNodeCorrespondence.entrySet()){
-			if(!sootControlFlowNodeCorrespondence.containsKey(entry.getValue())) {
-				sootControlFlowNodeCorrespondence.put(entry.getValue(), entry.getKey());
-			} else {
-				throw new RuntimeException("Key is not unique");
-			}
-		}
-
 		// perform code transformation
 		while(methodBodyUnitsIterator.hasNext()){
 			Unit statement = methodBodyUnitsIterator.next();
@@ -166,11 +145,21 @@ public class ConformCFGToPCG extends MethodCFGTransform {
 				} else if(endRelevanceNodes.contains(atlasNode)) {
 					markEndRelevance(statements, statement);
 				}
-				// insert goto/label pairs to elide irrelevant statements
-				if(elidedStatementMap.containsKey(atlasNode)) {
-					Node targetStatementNode = elidedStatementMap.get(atlasNode);
-					Unit targetSootStatement = sootControlFlowNodeCorrespondence.get(targetStatementNode);
-					statements.insertBefore(Jimple.v().newGotoStmt(targetSootStatement), statement);
+				
+				// remove elided or unreachable code
+				if(statementsToElide.contains(atlasNode) || abortedStatements.contains(atlasNode)) {
+					statements.remove(statement);
+					if(atlasNode.taggedWith(XCSG.controlFlowExitPoint) && !methodBodyUnitsIterator.hasNext()) {
+						// we removed the return statement, so we should add a dummy return to bytecode validity
+						Q returnsEdges = Common.universe().edgesTaggedWithAny(XCSG.Returns).retainEdges();
+						Q voidMethods = returnsEdges.predecessors(Common.types("void"));
+						boolean methodIsVoidReturnType = !CommonQueries.isEmpty(Common.toQ(methodNode).intersection(voidMethods));
+						if(methodIsVoidReturnType){
+							statements.add(Jimple.v().newReturnVoidStmt());
+						} else {
+							statements.add(Jimple.v().newReturnStmt(NullConstant.v()));
+						}
+					}
 				}
 			}
 		}
