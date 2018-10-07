@@ -50,7 +50,7 @@ import com.ensoftcorp.atlas.core.indexing.IndexingUtil;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
-import com.ensoftcorp.open.commons.utilities.DisplayUtils;
+import com.ensoftcorp.open.commons.ui.utilities.DisplayUtils;
 import com.ensoftcorp.open.commons.utilities.NodeSourceCorrespondenceSorter;
 import com.ensoftcorp.open.commons.utilities.selection.GraphSelectionListenerView;
 import com.ensoftcorp.open.java.commons.analysis.CommonQueries;

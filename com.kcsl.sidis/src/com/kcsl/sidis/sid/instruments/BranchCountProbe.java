@@ -7,6 +7,7 @@ import java.util.Map;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
@@ -62,7 +63,7 @@ public class BranchCountProbe extends MethodCFGTransform implements Probe {
 				Node branch = atlasNode;
 				// if branch is also a successor to another branch selected for instrumentation then we
 				// we have a special combined instrument to cut down on the number of insertions
-				Q predecessors = Common.universe().edges(XCSG.ControlFlow_Edge).predecessors(Common.toQ(branch));
+				Q predecessors = Query.universe().edges(XCSG.ControlFlow_Edge).predecessors(Common.toQ(branch));
 				if(CommonQueries.isEmpty(predecessors.intersection(Common.toQ(selectedBranches)))){
 					String branchAddress = branch.address().toAddressString();
 					if(branch.hasAttr(NormalizedAddress.NORMALIZED_ADDRESS_ATTRIBUTE)){
@@ -76,7 +77,7 @@ public class BranchCountProbe extends MethodCFGTransform implements Probe {
 					}
 					insertPathStartBeforeStatement(statements, statement, branchAddress);
 					
-					AtlasSet<Node> sucessors = Common.universe().edges(XCSG.ControlFlow_Edge).successors(Common.toQ(branch)).eval().nodes();
+					AtlasSet<Node> sucessors = Query.universe().edges(XCSG.ControlFlow_Edge).successors(Common.toQ(branch)).eval().nodes();
 					for(Node successor : sucessors){
 						if(!restrictedRegion.contains(successor)){
 							String statementAddress = successor.address().toAddressString();

@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
 
-import com.ensoftcorp.open.commons.utilities.DisplayUtils;
+import com.ensoftcorp.open.commons.ui.utilities.DisplayUtils;
 import com.kcsl.sidis.dis.Import;
 
 public class DISControlPanel extends ViewPart {

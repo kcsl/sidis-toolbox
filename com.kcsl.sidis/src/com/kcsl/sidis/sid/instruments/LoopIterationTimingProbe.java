@@ -7,6 +7,7 @@ import java.util.Map;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.jimple.commons.loops.BoundaryConditions;
@@ -66,8 +67,8 @@ public class LoopIterationTimingProbe extends MethodCFGTransform implements Prob
 				insertTickBeforeLoopHeaderStatement(statements, loopHeaderStatement, loopHeader.address().toAddressString());
 
 				Q boundaryConditions = Common.toQ(cfgNodes).nodes(BoundaryConditions.BOUNDARY_CONDITION);
-				Q loopChildren = Common.universe().edges(XCSG.LoopChild).successors(Common.toQ(loopHeader));
-				Q terminators = Common.universe().edges(XCSG.ControlFlow_Edge).successors(boundaryConditions).difference(loopChildren);
+				Q loopChildren = Query.universe().edges(XCSG.LoopChild).successors(Common.toQ(loopHeader));
+				Q terminators = Query.universe().edges(XCSG.ControlFlow_Edge).successors(boundaryConditions).difference(loopChildren);
 
 				for(Node terminator : terminators.eval().nodes()){
 					if(!restrictedRegion.contains(terminator)){

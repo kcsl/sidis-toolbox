@@ -2,7 +2,7 @@
 <feature
       id="com.kcsl.sidis.feature"
       label="SIDIS"
-      version="3.3.0.qualifier"
+      version="3.3.7.qualifier"
       provider-name="KCSL">
 
    <description url="https://kcsl.github.io/sidis-toolbox/">

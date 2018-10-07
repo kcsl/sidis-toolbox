@@ -14,6 +14,7 @@ import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
@@ -151,7 +152,7 @@ public class ConformCFGToPCG extends MethodCFGTransform {
 					statements.remove(statement);
 					if(atlasNode.taggedWith(XCSG.controlFlowExitPoint) && !methodBodyUnitsIterator.hasNext()) {
 						// we removed the return statement, so we should add a dummy return to bytecode validity
-						Q returnsEdges = Common.universe().edgesTaggedWithAny(XCSG.Returns).retainEdges();
+						Q returnsEdges = Query.universe().edges(XCSG.Returns).retainEdges();
 						Q voidMethods = returnsEdges.predecessors(Common.types("void"));
 						boolean methodIsVoidReturnType = !CommonQueries.isEmpty(Common.toQ(methodNode).intersection(voidMethods));
 						if(methodIsVoidReturnType){

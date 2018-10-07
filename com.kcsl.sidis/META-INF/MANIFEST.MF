@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: SIDIS Toolbox
 Bundle-SymbolicName: com.kcsl.sidis;singleton:=true
-Bundle-Version: 3.3.0.qualifier
+Bundle-Version: 3.3.7.qualifier
 Bundle-Vendor: Knowledge-Centric Software Lab
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
@@ -11,13 +11,13 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt,
  org.eclipse.jdt.core,
  org.eclipse.jdt.launching,
- com.ensoftcorp.abp;bundle-version="3.3.0",
- com.ensoftcorp.abp.common;bundle-version="3.3.0",
+ com.ensoftcorp.abp;bundle-version="3.3.7",
+ com.ensoftcorp.abp.common;bundle-version="3.3.7",
  ca.mcgill.sable.soot;bundle-version="2.5.2",
  ca.mcgill.sable.soot.lib;bundle-version="2.5.2",
- com.ensoftcorp.open.commons;bundle-version="3.3.0",
- com.ensoftcorp.open.java.commons;bundle-version="3.3.0",
- com.ensoftcorp.open.jimple.commons;bundle-version="3.3.0",
+ com.ensoftcorp.open.commons;bundle-version="3.3.7",
+ com.ensoftcorp.open.java.commons;bundle-version="3.3.7",
+ com.ensoftcorp.open.jimple.commons;bundle-version="3.3.7",
  com.ensoftcorp.atlas.core,
  com.ensoftcorp.open.pcg,
  com.ensoftcorp.open.slice
