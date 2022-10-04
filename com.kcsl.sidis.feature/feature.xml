@@ -2,7 +2,7 @@
 <feature
       id="com.kcsl.sidis.feature"
       label="SIDIS"
-      version="3.7.0.qualifier"
+      version="4.2.2.qualifier"
       provider-name="KCSL">
 
    <description url="https://kcsl.github.io/sidis-toolbox/">
@@ -10,13 +10,13 @@
    </description>
 
    <copyright url="https://raw.githubusercontent.com/kcsl/sidis-toolbox/master/LICENSE">
-      Copyright (c) 2017, 2021 Knowledge-Centric Software Lab
+      Copyright (c) 2017, 2022 Knowledge-Centric Software Lab
    </copyright>
 
    <license url="https://raw.githubusercontent.com/kcsl/sidis-toolbox/master/LICENSE">
       MIT License
 
-Copyright (c) 2017, 2018 Knowledge-Centric Software Lab
+Copyright (c) 2017, 2022 Knowledge-Centric Software Lab
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the &amp;quot;Software&amp;quot;), to deal
